@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
-import { createCircleGeoJSON } from '../utils/geo';
+import { createCircleGeoJSON, haversineDistance } from '../utils/geo';
 import { formatPrice, formatUpdated } from '../utils/format';
 import { COUNTRIES } from '../services/countries';
 import { getBrandLogoUrl } from '../utils/brandLogo';
@@ -51,6 +51,7 @@ export default function FuelMap({
   highlightedStation,
   hoveredStation,
   onLocate,
+  onMapMove,
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -58,6 +59,10 @@ export default function FuelMap({
   const clickPopupRef = useRef(null);
   const mapLoadedRef = useRef(false);
   const detailBuilderRef = useRef(null);
+  const skipMoveRef = useRef(false);
+  const moveDebounceRef = useRef(null);
+  const onMapMoveRef = useRef(onMapMove);
+  onMapMoveRef.current = onMapMove;
 
   // Initialize map
   useEffect(() => {
@@ -85,6 +90,28 @@ export default function FuelMap({
       if (onLocate && e.coords) {
         onLocate({ lat: e.coords.latitude, lng: e.coords.longitude });
       }
+    });
+
+    // Auto-search when user pans or zooms the map
+    map.on('moveend', () => {
+      if (skipMoveRef.current) {
+        skipMoveRef.current = false;
+        return;
+      }
+      // Only search when zoomed in enough (zoom >= 9 ≈ city level)
+      if (map.getZoom() < 9) return;
+
+      clearTimeout(moveDebounceRef.current);
+      moveDebounceRef.current = setTimeout(() => {
+        const c = map.getCenter();
+        const bounds = map.getBounds();
+        // Radius = distance from center to edge of visible area
+        const radiusKm = haversineDistance(
+          c.lat, c.lng,
+          bounds.getNorth(), c.lng
+        );
+        onMapMoveRef.current?.({ lat: c.lat, lng: c.lng, radiusKm: Math.min(radiusKm, 25) });
+      }, 600);
     });
 
     map.on('load', () => {
@@ -154,6 +181,7 @@ export default function FuelMap({
 
     return () => {
       mapLoadedRef.current = false;
+      clearTimeout(moveDebounceRef.current);
       map.remove();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -161,6 +189,7 @@ export default function FuelMap({
   // Update center/zoom when country changes (skip if a search will fitBounds)
   useEffect(() => {
     if (!mapRef.current || searchCenter) return;
+    skipMoveRef.current = true;
     mapRef.current.flyTo({ center, zoom, duration: 1000 });
   }, [center, zoom]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -209,6 +238,7 @@ export default function FuelMap({
         (b, c) => b.extend(c),
         new maplibregl.LngLatBounds(coords[0], coords[0])
       );
+      skipMoveRef.current = true;
       map.fitBounds(bounds, { padding: 50, duration: 800 });
     };
 
@@ -433,6 +463,7 @@ export default function FuelMap({
         const clusterId = feat.properties.cluster_id;
         map.getSource('stations').getClusterExpansionZoom(clusterId, (err, z) => {
           if (err) return;
+          skipMoveRef.current = true;
           map.easeTo({ center: feat.geometry.coordinates, zoom: z });
         });
       });
@@ -569,6 +600,7 @@ export default function FuelMap({
   // Fly to station on click from station list
   useEffect(() => {
     if (!mapRef.current || !highlightedStation) return;
+    skipMoveRef.current = true;
     mapRef.current.flyTo({
       center: [highlightedStation.lng, highlightedStation.lat],
       zoom: Math.max(mapRef.current.getZoom(), 14),

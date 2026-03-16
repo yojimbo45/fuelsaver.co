@@ -45,6 +45,10 @@ function App() {
     search({ query: '', country, radiusKm: 10, fuelType, lat, lng });
   }, [country, fuelType, search]);
 
+  const handleMapMove = useCallback(({ lat, lng, radiusKm }) => {
+    search({ query: '', country, radiusKm, fuelType, lat, lng });
+  }, [country, fuelType, search]);
+
   return (
     <>
       <Header />
@@ -72,10 +76,12 @@ function App() {
           stations={stations}
           fuelType={fuelType}
           currency={countryData.currency}
+          countryCode={country}
           searchCenter={searchCenter}
           highlightedStation={highlightedStation}
           hoveredStation={hoveredStation}
           onLocate={handleLocate}
+          onMapMove={handleMapMove}
         />
       </div>
     </>

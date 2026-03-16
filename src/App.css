@@ -58,7 +58,8 @@
 /* ── Sidebar ────────────────────────────── */
 .sidebar {
   width: 420px;
-  min-width: 420px;
+  min-width: 320px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--gray-200);
@@ -74,6 +75,7 @@
   flex-direction: column;
   gap: 12px;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .search-row {
@@ -128,6 +130,13 @@
   transition: background .1s;
 }
 
+.autocomplete-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .autocomplete-item:hover {
   background: var(--orange-50);
   color: var(--orange-700);
@@ -161,6 +170,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .filter-select {
@@ -171,6 +181,8 @@
   outline: none;
   background: #fff;
   transition: border-color .2s;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .filter-select:focus { border-color: var(--orange-400); }
@@ -343,6 +355,7 @@
 .station-info {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .station-brand {
@@ -619,5 +632,47 @@
   }
   .map-container {
     min-height: 50vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 12px;
+  }
+  .header-logo {
+    font-size: 16px;
+  }
+  .search-bar {
+    padding: 10px;
+    gap: 8px;
+  }
+  .search-input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .search-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .detected-country {
+    font-size: 12px;
+    padding: 3px 8px;
+  }
+  .filter-select {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  .filter-label {
+    font-size: 12px;
+  }
+  .station-card {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .station-brand {
+    font-size: 13px;
+  }
+  .station-price {
+    font-size: 16px;
   }
 }
