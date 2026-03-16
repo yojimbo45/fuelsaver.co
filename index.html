@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags -->
+    <title>FuelSaver — Compare Fuel Prices in 13 Countries | Find Cheapest Gas Stations</title>
+    <meta name="description" content="Compare real-time fuel prices across 13 countries including France, Germany, Spain, UK, Italy, and more. Find the cheapest gas stations near you and save money on every fill-up." />
+    <meta name="keywords" content="fuel prices, gas station finder, cheapest petrol, diesel prices, compare fuel, gasoline prices, fuel price comparison, cheap gas near me, petrol station, fuel cost calculator" />
+    <meta name="author" content="FuelSaver" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#f97316" />
+    <!-- canonical URL should be set to the deployed domain -->
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FuelSaver — Compare Fuel Prices in 13 Countries" />
+    <meta property="og:description" content="Find the cheapest gas stations near you. Real-time fuel prices across France, Germany, Spain, UK, Italy, and 8 more countries." />
+    <meta property="og:image" content="/og-image.svg" />
+    <meta property="og:site_name" content="FuelSaver" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FuelSaver — Compare Fuel Prices in 13 Countries" />
+    <meta name="twitter:description" content="Find the cheapest gas stations near you. Real-time prices across 13 countries." />
+    <meta name="twitter:image" content="/og-image.svg" />
+
+    <!-- Structured Data: WebApplication -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "FuelSaver",
+        "description": "Compare real-time fuel prices across 13 countries including Switzerland. Find the cheapest gas stations near you.",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Real-time fuel price comparison",
+          "13 countries supported",
+          "Interactive map with station locations",
+          "Distance-based search",
+          "Multiple fuel type filtering"
+        ],
+        "availableLanguage": "en",
+        "countriesSupported": "FR, DE, UK, ES, IT, AT, CH, KR, CL, AU, MX, BR, AR"
+      }
+    </script>
+
+    <!-- Structured Data: WebSite -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "FuelSaver",
+        "description": "Compare fuel prices and find the cheapest gas stations near you",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

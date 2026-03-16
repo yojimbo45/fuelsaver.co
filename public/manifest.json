@@ -1,0 +1,12 @@
+{
+  "name": "FuelSaver",
+  "short_name": "FuelSaver",
+  "description": "Compare fuel prices and find cheapest gas stations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" }
+  ]
+}
