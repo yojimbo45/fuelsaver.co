@@ -8,7 +8,7 @@ function getToken() {
 const ISO_TO_COUNTRY = {
   FR: 'FR', DE: 'DE', GB: 'UK', HR: 'HR', ES: 'ES', IT: 'IT',
   LU: 'LU', AT: 'AT', PT: 'PT', SI: 'SI', KR: 'KR', CL: 'CL',
-  AU: 'AU', MX: 'MX', BR: 'BR', AR: 'AR', CH: 'CH', US: 'US', CA: 'CA',
+  AU: 'AU', MX: 'MX', BR: 'BR', AR: 'AR', CH: 'CH',
 };
 
 function extractCountryCode(feature) {

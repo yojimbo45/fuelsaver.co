@@ -377,6 +377,21 @@
   text-overflow: ellipsis;
 }
 
+.station-demo-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
 .station-address {
   font-size: 12px;
   color: var(--gray-400);

@@ -10,8 +10,6 @@
  * Spain:        Ministerio REST API (open, no key)
  * Italy:        MIMIT open CSV (via Cloudflare Worker, VITE_ITALY_WORKER_URL)
  * UK:           CMA retailer feeds (via Cloudflare Worker, VITE_UK_WORKER_URL)
- * USA:          Demo data (no free public station-level API)
- * Canada:       Demo data (no free public station-level API)
  * Austria:      E-Control Spritpreisrechner (open, no key needed)
  * South Korea:  Opinet / KNOC (requires free API key via VITE_OPINET_KEY)
  * Chile:        CNE (open, no key needed)
@@ -333,14 +331,6 @@ async function fetchUK(lat, lng, radiusKm, _fuelType) {
     console.warn('UK worker unavailable, using demo data:', e.message);
     return generateDemoStations(lat, lng, radiusKm, 'UK');
   }
-}
-
-async function fetchUSA(lat, lng, radiusKm) {
-  return generateDemoStations(lat, lng, radiusKm, 'US');
-}
-
-async function fetchCanada(lat, lng, radiusKm) {
-  return generateDemoStations(lat, lng, radiusKm, 'CA');
 }
 
 // ─── Austria (E-Control) ──────────────────────────────────────────────
@@ -716,8 +706,6 @@ const BRANDS = {
   BR: ['Petrobras', 'Ipiranga', 'Shell', 'Ale', 'Repsol'],
   AR: ['YPF', 'Shell', 'Axion Energy', 'Puma', 'Gulf', 'Petrobras'],
   CH: ['Migrol', 'AVIA', 'Coop Pronto', 'Shell', 'BP', 'Eni', 'Agrola', 'Ruedi R\u00FCssel'],
-  US: ['Shell', 'Chevron', 'ExxonMobil', 'BP', 'Marathon', 'Valero', 'Citgo', 'Sunoco', 'Costco', 'Sam\'s Club', 'QuikTrip', 'Wawa'],
-  CA: ['Petro-Canada', 'Shell', 'Esso', 'Canadian Tire Gas', 'Ultramar', 'Costco', 'Pioneer', 'Husky', 'Co-op', 'Mobil'],
 };
 
 const FUEL_RANGES = {
@@ -738,8 +726,6 @@ const FUEL_RANGES = {
   BR: { gasolina: [5.5, 7.0], gasolina_ad: [5.8, 7.3], etanol: [3.5, 5.0], diesel: [5.0, 6.5], gnv: [3.5, 5.0] },
   AR: { nafta_super: [500, 800], nafta_premium: [600, 900], diesel: [500, 750], diesel_premium: [600, 850], gnc: [200, 400] },
   CH: { E95: [1.70, 1.95], E98: [1.80, 2.05], Diesel: [1.75, 2.00] },
-  US: { regular: [3.10, 3.80], midgrade: [3.50, 4.20], premium: [3.90, 4.60], diesel: [3.60, 4.30] },
-  CA: { regular: [1.50, 1.85], midgrade: [1.65, 2.00], premium: [1.80, 2.15], diesel: [1.60, 1.95] },
 };
 
 function generateDemoStations(lat, lng, radiusKm, country) {
@@ -798,8 +784,6 @@ const fetchers = {
   BR: fetchBrazil,
   AR: fetchArgentina,
   CH: fetchSwitzerland,
-  US: fetchUSA,
-  CA: fetchCanada,
 };
 
 export async function fetchStations(countryCode, lat, lng, radiusKm, fuelType) {

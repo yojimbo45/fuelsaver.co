@@ -303,42 +303,6 @@ export const COUNTRIES = {
     source: 'Comparis.ch (TCS)',
     sourceUrl: 'https://www.comparis.ch/benzin-preise',
   },
-  US: {
-    code: 'US',
-    name: 'United States',
-    flag: '\u{1F1FA}\u{1F1F8}',
-    center: [-98.5795, 39.8283],
-    zoom: 4,
-    currency: '$',
-    unit: 'gal',
-    fuelTypes: [
-      { id: 'regular', label: 'Regular (87)' },
-      { id: 'midgrade', label: 'Mid-Grade (89)' },
-      { id: 'premium', label: 'Premium (91-93)' },
-      { id: 'diesel', label: 'Diesel' },
-    ],
-    defaultFuel: 'regular',
-    source: 'Demo data (no public API)',
-    sourceUrl: '',
-  },
-  CA: {
-    code: 'CA',
-    name: 'Canada',
-    flag: '\u{1F1E8}\u{1F1E6}',
-    center: [-75.6972, 45.4215],
-    zoom: 4,
-    currency: 'C$',
-    unit: 'L',
-    fuelTypes: [
-      { id: 'regular', label: 'Regular (87)' },
-      { id: 'midgrade', label: 'Mid-Grade (89)' },
-      { id: 'premium', label: 'Premium (91-93)' },
-      { id: 'diesel', label: 'Diesel' },
-    ],
-    defaultFuel: 'regular',
-    source: 'Demo data (no public API)',
-    sourceUrl: '',
-  },
 };
 
 export const DEFAULT_COUNTRY = 'FR';

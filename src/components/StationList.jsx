@@ -107,7 +107,12 @@ export default function StationList({
               ) : null}
               <div className="station-rank" style={logoUrl ? { display: 'none' } : undefined}>{idx + 1}</div>
               <div className="station-info">
-                <div className="station-brand">{station.brand}</div>
+                <div className="station-brand">
+                  {station.brand}
+                  {station.id?.includes('-DEMO-') && (
+                    <span className="station-demo-badge">Demo</span>
+                  )}
+                </div>
                 <div className="station-address">
                   {station.address}{station.city ? `, ${station.city}` : ''}
                 </div>
