@@ -118,7 +118,7 @@ export const COUNTRIES = {
       { id: 'super_unleaded', label: 'Super Unleaded' },
     ],
     defaultFuel: 'unleaded',
-    source: 'GOV.UK Fuel Finder',
+    source: 'CMA Retailer Feeds (via Worker)',
     sourceUrl: 'https://www.gov.uk/guidance/access-fuel-price-data',
   },
   ES: {
@@ -154,8 +154,8 @@ export const COUNTRIES = {
       { id: 'metano', label: 'Metano' },
     ],
     defaultFuel: 'benzina',
-    source: 'MIMIT Open Data',
-    sourceUrl: 'https://www.mimit.gov.it/it/open-data/elenco-dataset/carworkeranti-702prezzi-702702702praticati-702e-702702702702anagrafica-702degli-702impianti',
+    source: 'MIMIT Open Data (via Worker)',
+    sourceUrl: 'https://www.mimit.gov.it/images/exportCSV/',
   },
   AT: {
     code: 'AT',

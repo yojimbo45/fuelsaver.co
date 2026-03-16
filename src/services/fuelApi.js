@@ -8,8 +8,8 @@
  * Portugal:     Tankerkönig (same API, coordinate-based)
  * Slovenia:     Tankerkönig (same API, coordinate-based)
  * Spain:        Ministerio REST API (open, no key)
- * Italy:        MIMIT open CSV (demo — needs backend proxy)
- * UK:           GOV.UK Fuel Finder (demo — needs backend proxy)
+ * Italy:        MIMIT open CSV (via Cloudflare Worker, VITE_ITALY_WORKER_URL)
+ * UK:           CMA retailer feeds (via Cloudflare Worker, VITE_UK_WORKER_URL)
  * USA:          Demo data (no free public station-level API)
  * Canada:       Demo data (no free public station-level API)
  * Austria:      E-Control Spritpreisrechner (open, no key needed)
@@ -271,15 +271,68 @@ async function fetchSpain(lat, lng, radiusKm, _fuelType) {
   return stations;
 }
 
-// ─── Italy / UK / USA / Canada — demo fallback ───────────────────────
-// These countries require backend proxying or have no free public API.
-// For now we generate demo data; you'll wire up a real backend later.
-async function fetchItaly(lat, lng, radiusKm) {
-  return generateDemoStations(lat, lng, radiusKm, 'IT');
+// ─── Italy (MIMIT via Cloudflare Worker) ────────────────────────────
+async function fetchItaly(lat, lng, radiusKm, _fuelType) {
+  const workerUrl = import.meta.env.VITE_ITALY_WORKER_URL;
+  if (!workerUrl) {
+    console.warn('Italy worker URL not set (VITE_ITALY_WORKER_URL). Using demo data.');
+    return generateDemoStations(lat, lng, radiusKm, 'IT');
+  }
+
+  try {
+    const url = `${workerUrl}/api/italy?lat=${lat}&lng=${lng}&radius=${radiusKm}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Italy worker error: ${res.status}`);
+    const json = await res.json();
+    console.log('[FuelAPI] Italy raw response:', json);
+
+    return (json?.stations || []).map((s) => ({
+      id: `IT-${s.id}`,
+      brand: s.brand || 'Distributore',
+      address: s.address || '',
+      city: s.city || '',
+      lat: s.lat,
+      lng: s.lng,
+      prices: s.prices || {},
+      updatedAt: s.updatedAt || null,
+      distance: s.distance,
+    }));
+  } catch (e) {
+    console.warn('Italy worker unavailable, using demo data:', e.message);
+    return generateDemoStations(lat, lng, radiusKm, 'IT');
+  }
 }
 
-async function fetchUK(lat, lng, radiusKm) {
-  return generateDemoStations(lat, lng, radiusKm, 'UK');
+// ─── UK (CMA retailer feeds via Cloudflare Worker) ──────────────────
+async function fetchUK(lat, lng, radiusKm, _fuelType) {
+  const workerUrl = import.meta.env.VITE_UK_WORKER_URL;
+  if (!workerUrl) {
+    console.warn('UK worker URL not set (VITE_UK_WORKER_URL). Using demo data.');
+    return generateDemoStations(lat, lng, radiusKm, 'UK');
+  }
+
+  try {
+    const url = `${workerUrl}/api/uk?lat=${lat}&lng=${lng}&radius=${radiusKm}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`UK worker error: ${res.status}`);
+    const json = await res.json();
+    console.log('[FuelAPI] UK raw response:', json);
+
+    return (json?.stations || []).map((s) => ({
+      id: `UK-${s.id}`,
+      brand: s.brand || 'Station',
+      address: s.address || '',
+      city: s.city || '',
+      lat: s.lat,
+      lng: s.lng,
+      prices: s.prices || {},
+      updatedAt: s.updatedAt || null,
+      distance: s.distance,
+    }));
+  } catch (e) {
+    console.warn('UK worker unavailable, using demo data:', e.message);
+    return generateDemoStations(lat, lng, radiusKm, 'UK');
+  }
 }
 
 async function fetchUSA(lat, lng, radiusKm) {
