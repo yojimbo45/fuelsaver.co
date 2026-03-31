@@ -5,6 +5,9 @@ compatibility_date = "2024-12-01"
 [triggers]
 crons = ["0 6 * * 1"]  # Every Monday at 06:00 UTC
 
+[vars]
+MAPBOX_TOKEN = "pk.eyJ1IjoieW9qaW1ibzQ1IiwiYSI6ImNtbXNnbXU1cjFjODMycHB6ejU0cXk3YmcifQ.Jmgmyev4QgLlgtuzvTV9sw"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "fuel-brazil"

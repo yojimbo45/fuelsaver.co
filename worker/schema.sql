@@ -18,3 +18,9 @@ CREATE TABLE stations (
 
 CREATE INDEX idx_stations_lat ON stations (lat);
 CREATE INDEX idx_stations_lng ON stations (lng);
+
+CREATE TABLE IF NOT EXISTS geocode_cache (
+  address_key TEXT PRIMARY KEY,
+  lat REAL NOT NULL,
+  lng REAL NOT NULL
+);

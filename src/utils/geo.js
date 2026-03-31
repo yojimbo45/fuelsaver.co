@@ -24,24 +24,47 @@ export function formatDistance(km) {
 }
 
 /**
- * Create a GeoJSON circle polygon for MapLibre.
+ * Detect country code from lat/lng using bounding boxes.
+ * Returns our internal country code (e.g. 'FR', 'UK') or null.
+ * Checked from smallest to largest to prefer specific matches.
  */
-export function createCircleGeoJSON(center, radiusKm, steps = 64) {
-  const [lng, lat] = center;
-  const coords = [];
+const COUNTRY_BOUNDS = [
+  // Small countries first (more specific)
+  { code: 'LU', latMin: 49.4, latMax: 50.2, lngMin: 5.7, lngMax: 6.6 },
+  { code: 'SI', latMin: 45.4, latMax: 46.9, lngMin: 13.3, lngMax: 16.6 },
+  { code: 'CH', latMin: 45.8, latMax: 47.8, lngMin: 5.9, lngMax: 10.5 },
+  { code: 'AT', latMin: 46.3, latMax: 49.0, lngMin: 9.5, lngMax: 17.2 },
+  { code: 'BE', latMin: 49.5, latMax: 51.5, lngMin: 2.5, lngMax: 6.4 },
+  { code: 'NL', latMin: 50.7, latMax: 53.6, lngMin: 3.3, lngMax: 7.2 },
+  { code: 'DK', latMin: 54.5, latMax: 57.8, lngMin: 8.0, lngMax: 15.2 },
+  { code: 'HR', latMin: 42.3, latMax: 46.6, lngMin: 13.5, lngMax: 19.5 },
+  { code: 'GR', latMin: 34.8, latMax: 41.8, lngMin: 19.3, lngMax: 29.7 },
+  { code: 'PT', latMin: 36.9, latMax: 42.2, lngMin: -9.5, lngMax: -6.2 },
+  { code: 'UK', latMin: 49.9, latMax: 60.9, lngMin: -8.6, lngMax: 1.8 },
+  // Medium countries
+  { code: 'DE', latMin: 47.2, latMax: 55.1, lngMin: 5.8, lngMax: 15.1 },
+  { code: 'FR', latMin: 41.3, latMax: 51.1, lngMin: -5.2, lngMax: 9.6 },
+  { code: 'ES', latMin: 35.9, latMax: 43.8, lngMin: -9.4, lngMax: 4.3 },
+  { code: 'IT', latMin: 36.6, latMax: 47.1, lngMin: 6.6, lngMax: 18.5 },
+  { code: 'KR', latMin: 33.1, latMax: 38.6, lngMin: 124.6, lngMax: 131.9 },
+  { code: 'AE', latMin: 22.6, latMax: 26.1, lngMin: 51.5, lngMax: 56.4 },
+  { code: 'MY', latMin: 0.8, latMax: 7.4, lngMin: 99.6, lngMax: 119.3 },
+  { code: 'NZ', latMin: -47.3, latMax: -34.4, lngMin: 166.4, lngMax: 178.6 },
+  // Large countries
+  { code: 'ZA', latMin: -34.8, latMax: -22.1, lngMin: 16.4, lngMax: 32.9 },
+  { code: 'AU', latMin: -43.6, latMax: -10.7, lngMin: 113.2, lngMax: 153.6 },
+  { code: 'CL', latMin: -55.9, latMax: -17.5, lngMin: -75.6, lngMax: -66.9 },
+  { code: 'MX', latMin: 14.5, latMax: 32.7, lngMin: -118.4, lngMax: -86.7 },
+  { code: 'AR', latMin: -55.1, latMax: -21.8, lngMin: -73.6, lngMax: -53.6 },
+  { code: 'BR', latMin: -33.7, latMax: 5.3, lngMin: -73.9, lngMax: -34.8 },
+];
 
-  for (let i = 0; i <= steps; i++) {
-    const angle = (i / steps) * 2 * Math.PI;
-    const dLat = (radiusKm / 111) * Math.cos(angle);
-    const dLng = (radiusKm / (111 * Math.cos((lat * Math.PI) / 180))) * Math.sin(angle);
-    coords.push([lng + dLng, lat + dLat]);
+export function detectCountryFromCoords(lat, lng) {
+  for (const b of COUNTRY_BOUNDS) {
+    if (lat >= b.latMin && lat <= b.latMax && lng >= b.lngMin && lng <= b.lngMax) {
+      return b.code;
+    }
   }
-
-  return {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [coords],
-    },
-  };
+  return null;
 }
+

@@ -1,9 +1,10 @@
 import { useRef, useEffect, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
-import { createCircleGeoJSON, haversineDistance } from '../utils/geo';
+import { haversineDistance, detectCountryFromCoords } from '../utils/geo';
 import { formatPrice, formatUpdated } from '../utils/format';
 import { COUNTRIES } from '../services/countries';
 import { getBrandLogoUrl } from '../utils/brandLogo';
+import { getFuelColor } from '../utils/fuelColors';
 
 function getMapStyle() {
   const token = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -61,6 +62,7 @@ export default function FuelMap({
   const detailBuilderRef = useRef(null);
   const skipMoveRef = useRef(false);
   const moveDebounceRef = useRef(null);
+  const lastSearchRef = useRef(null);
   const onMapMoveRef = useRef(onMapMove);
   onMapMoveRef.current = onMapMove;
 
@@ -68,11 +70,15 @@ export default function FuelMap({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Restore zoom from URL if present (for shared links)
+    const urlZoom = Number(new URLSearchParams(window.location.search).get('zoom'));
+    const initialZoom = urlZoom && urlZoom >= 1 && urlZoom <= 22 ? urlZoom : zoom;
+
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: getMapStyle(),
       center: center,
-      zoom: zoom,
+      zoom: initialZoom,
       attributionControl: true,
     });
 
@@ -92,8 +98,42 @@ export default function FuelMap({
       }
     });
 
+    // Refresh button — re-searches the current viewport
+    const refreshBtn = document.createElement('button');
+    refreshBtn.className = 'map-refresh-btn';
+    refreshBtn.title = 'Refresh stations in this area';
+    refreshBtn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`;
+    refreshBtn.addEventListener('click', () => {
+      if (map.getZoom() < 9) return;
+      const c = map.getCenter();
+      const bounds = map.getBounds();
+      const radiusKm = haversineDistance(
+        c.lat, c.lng,
+        bounds.getNorth(), bounds.getEast()
+      );
+      // Clear cached search area so future auto-searches aren't skipped
+      lastSearchRef.current = null;
+      onMapMoveRef.current?.({ lat: c.lat, lng: c.lng, radiusKm: Math.min(radiusKm, 50) });
+    });
+    const refreshContainer = document.createElement('div');
+    refreshContainer.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    refreshContainer.appendChild(refreshBtn);
+    map.getContainer().querySelector('.maplibregl-ctrl-top-right').appendChild(refreshContainer);
+
     // Auto-search when user pans or zooms the map
     map.on('moveend', () => {
+      // Always sync zoom + detected country to URL
+      const params = new URLSearchParams(window.location.search);
+      params.set('zoom', Math.round(map.getZoom()));
+      const c = map.getCenter();
+      const detected = detectCountryFromCoords(c.lat, c.lng);
+      if (detected && COUNTRIES[detected]) {
+        params.set('country', detected);
+        params.set('lat', c.lat.toFixed(4));
+        params.set('lng', c.lng.toFixed(4));
+      }
+      window.history.replaceState(null, '', `?${params.toString()}`);
+
       if (skipMoveRef.current) {
         skipMoveRef.current = false;
         return;
@@ -101,17 +141,38 @@ export default function FuelMap({
       // Only search when zoomed in enough (zoom >= 9 ≈ city level)
       if (map.getZoom() < 9) return;
 
+      const bounds = map.getBounds();
+      const last = lastSearchRef.current;
+
+      // Skip if current viewport is fully inside the last searched area
+      if (last &&
+          bounds.getNorth() <= last.north &&
+          bounds.getSouth() >= last.south &&
+          bounds.getEast() <= last.east &&
+          bounds.getWest() >= last.west) {
+        return;
+      }
+
       clearTimeout(moveDebounceRef.current);
       moveDebounceRef.current = setTimeout(() => {
         const c = map.getCenter();
-        const bounds = map.getBounds();
-        // Radius = distance from center to edge of visible area
+        const b = map.getBounds();
+        // Radius = distance from center to corner of viewport (covers full rectangle)
         const radiusKm = haversineDistance(
           c.lat, c.lng,
-          bounds.getNorth(), c.lng
+          b.getNorth(), b.getEast()
         );
-        onMapMoveRef.current?.({ lat: c.lat, lng: c.lng, radiusKm: Math.min(radiusKm, 25) });
-      }, 600);
+
+        // Store the searched area
+        lastSearchRef.current = {
+          north: b.getNorth(),
+          south: b.getSouth(),
+          east: b.getEast(),
+          west: b.getWest(),
+        };
+
+        onMapMoveRef.current?.({ lat: c.lat, lng: c.lng, radiusKm: Math.min(radiusKm, 50) });
+      }, 800);
     });
 
     map.on('load', () => {
@@ -193,59 +254,27 @@ export default function FuelMap({
     mapRef.current.flyTo({ center, zoom, duration: 1000 });
   }, [center, zoom]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Draw search radius circle
+  // Fly to search location (only for SearchBar/geolocate searches, not map-move)
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !searchCenter) return;
 
-    const drawCircle = () => {
-      // Remove existing circle layers/source
-      if (map.getLayer('radius-fill')) map.removeLayer('radius-fill');
-      if (map.getLayer('radius-line')) map.removeLayer('radius-line');
-      if (map.getSource('radius')) map.removeSource('radius');
+    // Clear last search area so the new location gets a fresh search on moveend
+    lastSearchRef.current = null;
 
-      if (!searchCenter) return;
-
-      const circleGeo = createCircleGeoJSON(
-        [searchCenter.lng, searchCenter.lat],
-        searchCenter.radiusKm
-      );
-
-      map.addSource('radius', { type: 'geojson', data: circleGeo });
-
-      map.addLayer({
-        id: 'radius-fill',
-        type: 'fill',
-        source: 'radius',
-        paint: { 'fill-color': '#f97316', 'fill-opacity': 0.08 },
-      });
-
-      map.addLayer({
-        id: 'radius-line',
-        type: 'line',
-        source: 'radius',
-        paint: {
-          'line-color': '#f97316',
-          'line-width': 2,
-          'line-opacity': 0.5,
-          'line-dasharray': [4, 4],
-        },
-      });
-
-      // Fit map to circle bounds
-      const coords = circleGeo.geometry.coordinates[0];
-      const bounds = coords.reduce(
-        (b, c) => b.extend(c),
-        new maplibregl.LngLatBounds(coords[0], coords[0])
-      );
+    const fly = () => {
       skipMoveRef.current = true;
-      map.fitBounds(bounds, { padding: 50, duration: 800 });
+      map.flyTo({
+        center: [searchCenter.lng, searchCenter.lat],
+        zoom: Math.max(map.getZoom(), 12),
+        duration: 800,
+      });
     };
 
     if (mapLoadedRef.current) {
-      drawCircle();
+      fly();
     } else {
-      map.on('load', drawCircle);
+      map.on('load', fly);
     }
   }, [searchCenter]);
 
@@ -255,6 +284,14 @@ export default function FuelMap({
     if (!map) return;
     if (hoverPopupRef.current) { hoverPopupRef.current.remove(); hoverPopupRef.current = null; }
     if (clickPopupRef.current) { clickPopupRef.current.remove(); clickPopupRef.current = null; }
+
+    // Remove old pill images
+    if (map._pillIds) {
+      for (const id of map._pillIds) {
+        if (map.hasImage(id)) map.removeImage(id);
+      }
+    }
+    map._pillIds = [];
 
     // Build GeoJSON from stations
     const withPrice = stations
@@ -288,6 +325,7 @@ export default function FuelMap({
           color,
           brand: station.brand,
           logoUrl: getBrandLogoUrl(station.brand) || '',
+          pillId: '',  // set later by pill generator
           price: formatPrice(price, currency),
           address: station.address + (station.city ? ', ' + station.city : ''),
           allPrices: JSON.stringify(station.prices),
@@ -337,17 +375,19 @@ export default function FuelMap({
         if (val == null) continue;
         const label = fuelLabels[fuelId] || fuelId;
         const isSelected = fuelId === fuelType;
+        const color = getFuelColor(fuelId);
+        const indicator = `<span style="display:inline-block;width:4px;height:18px;border-radius:2px;background:${color};margin-right:6px;vertical-align:middle"></span>`;
         const isOut = outOfStock.some(
           (s) => s.toLowerCase() === fuelId.toLowerCase() || s.toLowerCase() === label.toLowerCase()
         );
         if (isOut) {
           priceRows += `<tr class="map-popup-out-of-stock">
-            <td class="map-popup-fuel-label"><s>${label}</s></td>
+            <td class="map-popup-fuel-label">${indicator}<s>${label}</s></td>
             <td class="map-popup-fuel-price map-popup-oos-text">out of stock</td>
           </tr>`;
         } else {
           priceRows += `<tr class="${isSelected ? 'map-popup-selected' : ''}">
-            <td class="map-popup-fuel-label">${label}</td>
+            <td class="map-popup-fuel-label">${indicator}${label}</td>
             <td class="map-popup-fuel-price">${formatPrice(val, currency)}</td>
           </tr>`;
         }
@@ -413,6 +453,121 @@ export default function FuelMap({
       </div>`;
     };
 
+    // Generate pill-shaped card images for zoom >= 12 (logo + price in white rounded rect)
+    const ratio = 3; // 3x for crisp retina rendering
+    const pillH = 32 * ratio;
+    const logoSize = 24 * ratio;
+    const padX = 6 * ratio;
+    const padY = 4 * ratio;
+    const gap = 4 * ratio;
+    const fontSize = 13 * ratio;
+    const radius = pillH / 2;
+
+    // Measure text to compute pill width
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+    measureCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+
+    const pendingLogos = new Map(); // logoUrl -> [entries]
+
+    const totalStations = features.length;
+
+    for (const f of features) {
+      const { price, logoUrl, stationId, rank } = f.properties;
+      const pillId = `pill-${stationId}`;
+      f.properties.pillId = pillId;
+      map._pillIds.push(pillId);
+
+      // Text color: green for #1, red for last, black for the rest
+      const rankNum = parseInt(rank, 10);
+      let textColor = '#1f2937';
+      if (rankNum === 1) textColor = '#16a34a';
+      else if (rankNum === totalStations) textColor = '#dc2626';
+
+      const textW = measureCtx.measureText(price).width;
+      const hasLogo = !!logoUrl;
+      const pillW = padX + (hasLogo ? logoSize + gap : 0) + textW + padX;
+
+      // Draw pill
+      const drawPill = (logoImg) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.ceil(pillW);
+        canvas.height = pillH;
+        const ctx = canvas.getContext('2d');
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // White rounded rect background
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(radius, 0);
+        ctx.lineTo(pillW - radius, 0);
+        ctx.arc(pillW - radius, radius, radius, -Math.PI / 2, Math.PI / 2);
+        ctx.lineTo(radius, pillH);
+        ctx.arc(radius, radius, radius, Math.PI / 2, -Math.PI / 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Light border
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1.5 * ratio;
+        ctx.stroke();
+
+        let textX = padX;
+
+        // Logo (circular)
+        if (logoImg) {
+          const lx = padX;
+          const ly = (pillH - logoSize) / 2;
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(lx + logoSize / 2, ly + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
+          ctx.restore();
+          textX = padX + logoSize + gap;
+        }
+
+        // Price text
+        ctx.fillStyle = textColor;
+        ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(price, textX, pillH / 2);
+
+        if (!map.hasImage(pillId)) {
+          map.addImage(pillId, { width: canvas.width, height: canvas.height, data: ctx.getImageData(0, 0, canvas.width, canvas.height).data }, { pixelRatio: ratio });
+        }
+      };
+
+      if (hasLogo) {
+        // Load logo async, draw pill on load
+        if (!pendingLogos.has(logoUrl)) pendingLogos.set(logoUrl, []);
+        pendingLogos.get(logoUrl).push({ drawPill, pillId });
+
+        // Also draw a text-only pill immediately as fallback
+        drawPill(null);
+      } else {
+        drawPill(null);
+      }
+    }
+
+    // Load logo images and redraw pills
+    for (const [logoUrl, entries] of pendingLogos) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        for (const { drawPill, pillId } of entries) {
+          if (map.hasImage(pillId)) map.removeImage(pillId);
+          drawPill(img);
+        }
+        // Trigger repaint
+        const src = map.getSource('stations');
+        if (src) src.setData(geojson);
+      };
+      img.src = logoUrl;
+    }
+
     // Update or create the source
     const source = map.getSource('stations');
     if (source) {
@@ -422,7 +577,7 @@ export default function FuelMap({
         type: 'geojson',
         data: geojson,
         cluster: true,
-        clusterMaxZoom: 13,
+        clusterMaxZoom: 10,
         clusterRadius: 50,
       });
 
@@ -470,12 +625,13 @@ export default function FuelMap({
       map.on('mouseenter', 'clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
       map.on('mouseleave', 'clusters', () => { map.getCanvas().style.cursor = ''; });
 
-      // Circle layer for individual (unclustered) station dots
+      // Circle layer for individual (unclustered) station dots — zoom < 13 only
       map.addLayer({
         id: 'stations-circle',
         type: 'circle',
         source: 'stations',
         filter: ['!', ['has', 'point_count']],
+        maxzoom: 11,
         paint: {
           'circle-radius': 16,
           'circle-color': ['get', 'color'],
@@ -484,12 +640,13 @@ export default function FuelMap({
         },
       });
 
-      // Symbol layer for fuel pump icon (unclustered only)
+      // Symbol layer for fuel pump icon (unclustered only, zoom < 13)
       map.addLayer({
         id: 'stations-label',
         type: 'symbol',
         source: 'stations',
         filter: ['!', ['has', 'point_count']],
+        maxzoom: 11,
         layout: {
           'icon-image': 'fuel-icon',
           'icon-size': 0.9,
@@ -497,14 +654,30 @@ export default function FuelMap({
         },
       });
 
-      // Pointer cursor on hover
-      map.on('mouseenter', 'stations-circle', () => {
-        map.getCanvas().style.cursor = 'pointer';
+      // Pill card (zoom >= 13) — colored rounded rect with logo + price
+      map.addLayer({
+        id: 'stations-pill',
+        type: 'symbol',
+        source: 'stations',
+        filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'pillId'], '']],
+        minzoom: 11,
+        layout: {
+          'icon-image': ['get', 'pillId'],
+          'icon-allow-overlap': true,
+          'icon-size': 1,
+        },
       });
-      map.on('mouseleave', 'stations-circle', () => {
-        map.getCanvas().style.cursor = '';
-        if (hoverPopupRef.current) { hoverPopupRef.current.remove(); hoverPopupRef.current = null; }
-      });
+
+      // Pointer cursor on hover (both circle and pill layers)
+      for (const layerId of ['stations-circle', 'stations-pill']) {
+        map.on('mouseenter', layerId, () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', layerId, () => {
+          map.getCanvas().style.cursor = '';
+          if (hoverPopupRef.current) { hoverPopupRef.current.remove(); hoverPopupRef.current = null; }
+        });
+      }
 
       // Small tooltip on hover
       map.on('mousemove', 'stations-circle', (e) => {
@@ -524,8 +697,8 @@ export default function FuelMap({
           .addTo(map);
       });
 
-      // Detailed popup on click
-      map.on('click', 'stations-circle', (e) => {
+      // Detailed popup on click (both circle and pill layers)
+      const handleStationClick = (e) => {
         if (!e.features || !e.features.length) return;
         const f = e.features[0];
         const coords = f.geometry.coordinates.slice();
@@ -542,7 +715,9 @@ export default function FuelMap({
           .setLngLat(coords)
           .setHTML(detailBuilderRef.current(f.properties))
           .addTo(map);
-      });
+      };
+      map.on('click', 'stations-circle', handleStationClick);
+      map.on('click', 'stations-pill', handleStationClick);
     }
   }, [stations, fuelType, currency, countryCode]);
 

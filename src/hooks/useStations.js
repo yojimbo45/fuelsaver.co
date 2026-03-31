@@ -8,7 +8,7 @@ export function useStations() {
   const [error, setError] = useState(null);
   const [searchCenter, setSearchCenter] = useState(null);
 
-  const search = useCallback(async ({ query, country, radiusKm, fuelType, lat, lng }) => {
+  const search = useCallback(async ({ query, country, radiusKm, fuelType, lat, lng, skipFly }) => {
     setLoading(true);
     setError(null);
 
@@ -31,7 +31,9 @@ export function useStations() {
         throw new Error('Could not determine country for this location. Please try a more specific search.');
       }
 
-      setSearchCenter({ lat: centerLat, lng: centerLng, radiusKm });
+      if (!skipFly) {
+        setSearchCenter({ lat: centerLat, lng: centerLng });
+      }
 
       const results = await fetchStations(detectedCountry, centerLat, centerLng, radiusKm, fuelType);
       setStations(results);

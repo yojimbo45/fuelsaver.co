@@ -2,15 +2,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { COUNTRIES } from '../services/countries';
 import { autocompletePlaces } from '../services/geocoding';
 
-const RADIUS_OPTIONS = [1, 2, 5, 10, 15, 20, 30];
-
 function getUrlParams() {
   const params = new URLSearchParams(window.location.search);
-  const r = Number(params.get('radius'));
   const lat = params.get('lat') ? Number(params.get('lat')) : null;
   const lng = params.get('lng') ? Number(params.get('lng')) : null;
   return {
-    radius: RADIUS_OPTIONS.includes(r) ? r : null,
     fuel: params.get('fuel') || null,
     lat: lat != null && !isNaN(lat) ? lat : null,
     lng: lng != null && !isNaN(lng) ? lng : null,
@@ -19,10 +15,9 @@ function getUrlParams() {
   };
 }
 
-export default function SearchBar({ onSearch, onCountryDetected }) {
+export default function SearchBar({ onSearch, onCountryDetected, activeFuelType }) {
   const urlParams = useRef(getUrlParams());
   const [query, setQuery] = useState('');
-  const [radius, setRadius] = useState(urlParams.current.radius || 5);
   const [detectedCountry, setDetectedCountry] = useState(null);
   const [fuelType, setFuelType] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -33,6 +28,11 @@ export default function SearchBar({ onSearch, onCountryDetected }) {
 
   const countryData = detectedCountry ? COUNTRIES[detectedCountry] : null;
   const fuelTypes = countryData?.fuelTypes || [];
+
+  // Sync fuel type from parent (when changed via StationList)
+  useEffect(() => {
+    if (activeFuelType) setFuelType(activeFuelType);
+  }, [activeFuelType]);
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -52,17 +52,15 @@ export default function SearchBar({ onSearch, onCountryDetected }) {
       const cc = p.country;
       const countryFuels = COUNTRIES[cc].fuelTypes.map((f) => f.id);
       const fuel = p.fuel && countryFuels.includes(p.fuel) ? p.fuel : COUNTRIES[cc].defaultFuel;
-      const rad = p.radius || 5;
 
       setQuery(p.q || '');
       setSelectedCoords({ lat: p.lat, lng: p.lng });
       setDetectedCountry(cc);
       setFuelType(fuel);
-      setRadius(rad);
       onCountryDetected?.(cc);
       onSearch({
         query: p.q || '',
-        radiusKm: rad,
+        radiusKm: 15,
         fuelType: fuel,
         lat: p.lat,
         lng: p.lng,
@@ -109,7 +107,7 @@ export default function SearchBar({ onSearch, onCountryDetected }) {
     }
   }, [onCountryDetected]);
 
-  const triggerSearch = useCallback((fuel, rad) => {
+  const triggerSearch = useCallback((fuel) => {
     if (!detectedCountry) return;
 
     // Sync all search state to URL for sharing
@@ -119,12 +117,11 @@ export default function SearchBar({ onSearch, onCountryDetected }) {
     if (selectedCoords?.lng != null) params.set('lng', selectedCoords.lng);
     params.set('country', detectedCountry);
     params.set('fuel', fuel);
-    params.set('radius', rad);
     window.history.replaceState(null, '', `?${params.toString()}`);
 
     onSearch({
       query: query.trim(),
-      radiusKm: rad,
+      radiusKm: 15,
       fuelType: fuel,
       lat: selectedCoords?.lat,
       lng: selectedCoords?.lng,
@@ -137,7 +134,7 @@ export default function SearchBar({ onSearch, onCountryDetected }) {
     if (!query.trim()) return;
     if (!detectedCountry) return;
     setShowSuggestions(false);
-    triggerSearch(fuelType, radius);
+    triggerSearch(fuelType);
   };
 
   return (
@@ -176,46 +173,6 @@ export default function SearchBar({ onSearch, onCountryDetected }) {
           Search
         </button>
       </div>
-      {fuelTypes.length > 0 && (
-        <div className="filters-row">
-          {countryData && (
-            <span className="detected-country">{countryData.flag} {countryData.name}</span>
-          )}
-          <span className="filter-label">Fuel</span>
-          <select
-            className="filter-select"
-            value={fuelType}
-            onChange={(e) => {
-              const newFuel = e.target.value;
-              setFuelType(newFuel);
-              if (selectedCoords && detectedCountry) {
-                triggerSearch(newFuel, radius);
-              }
-            }}
-          >
-            {fuelTypes.map((f) => (
-              <option key={f.id} value={f.id}>{f.label}</option>
-            ))}
-          </select>
-
-          <span className="filter-label">Radius</span>
-          <select
-            className="filter-select"
-            value={radius}
-            onChange={(e) => {
-              const newRadius = Number(e.target.value);
-              setRadius(newRadius);
-              if (selectedCoords && detectedCountry) {
-                triggerSearch(fuelType, newRadius);
-              }
-            }}
-          >
-            {RADIUS_OPTIONS.map((r) => (
-              <option key={r} value={r}>{r} km</option>
-            ))}
-          </select>
-        </div>
-      )}
       {!detectedCountry && query.length > 0 && (
         <div className="filters-row">
           <span className="filter-hint">Select a location from suggestions to detect country</span>

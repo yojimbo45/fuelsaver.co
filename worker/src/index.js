@@ -1,8 +1,9 @@
 /**
  * Cloudflare Worker — Brazil ANP fuel price proxy.
  *
- * - Cron trigger (weekly): downloads ANP CSV, geocodes via IBGE, stores in D1
+ * - Cron trigger (weekly): downloads ANP CSV, geocodes via IBGE + Nominatim, stores in D1
  * - HTTP GET /api/brazil?lat=X&lng=Y&radius=Z: returns nearby stations as JSON
+ * - HTTP GET /api/brazil/geocode-neighborhoods: batch-geocode unique neighborhoods
  */
 
 const CORS_HEADERS = {
@@ -37,17 +38,29 @@ export default {
       return handleRefresh(env);
     }
 
+    if (url.pathname === '/api/brazil/geocode-neighborhoods') {
+      return handleGeocodeNeighborhoods(url, env);
+    }
+
     if (url.pathname === '/api/brazil/status') {
-      const count = await env.DB.prepare('SELECT COUNT(*) as cnt FROM stations').first();
-      return json({ stations: count?.cnt || 0 });
+      const stationCount = await env.DB.prepare('SELECT COUNT(*) as cnt FROM stations').first();
+      let cacheCount = { cnt: 0 };
+      try {
+        cacheCount = await env.DB.prepare('SELECT COUNT(*) as cnt FROM geocode_cache').first();
+      } catch {}
+      return json({ stations: stationCount?.cnt || 0, geocode_cache: cacheCount?.cnt || 0 });
     }
 
     return new Response('Not found', { status: 404 });
   },
 
-  async scheduled(event, env) {
+  async scheduled(event, env, ctx) {
     console.log('Cron triggered: refreshing ANP data...');
     await refreshData(env);
+    // Geocode neighborhoods after refresh (cron has 15-min wall-clock limit)
+    console.log('Starting neighborhood geocoding...');
+    const url = new URL('https://localhost/api/brazil/geocode-neighborhoods?limit=2000');
+    await handleGeocodeNeighborhoods(url, env);
   },
 };
 
@@ -115,14 +128,185 @@ async function handleRefresh(env) {
   }
 }
 
+// ─── Geocode stations: batch geocode full addresses via Mapbox ────────
+async function handleGeocodeNeighborhoods(url, env) {
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '500', 10), 5000);
+  const cityFilter = url.searchParams.get('city') || '';
+  const clearCache = url.searchParams.get('clear') === '1';
+  const token = env.MAPBOX_TOKEN;
+
+  if (!token) return json({ error: 'MAPBOX_TOKEN not configured' }, 500);
+
+  await ensureTables(env);
+
+  if (clearCache) {
+    await env.DB.prepare('DELETE FROM geocode_cache').run();
+  }
+
+  // Load existing cache
+  const cacheResult = await env.DB.prepare('SELECT address_key FROM geocode_cache').all();
+  const cachedKeys = new Set((cacheResult.results || []).map((r) => r.address_key));
+
+  // Get all stations
+  const stationsResult = await env.DB.prepare('SELECT id, address, city, state FROM stations').all();
+  const stations = stationsResult.results || [];
+
+  // Collect unique un-geocoded addresses (full address as key)
+  const toGeocode = new Map();
+  for (const s of stations) {
+    if (cityFilter && (s.city || '').toUpperCase() !== cityFilter.toUpperCase()) continue;
+    const addrKey = normKey(s.address || '', s.city || '', s.state || '');
+    if (!cachedKeys.has(addrKey) && !toGeocode.has(addrKey)) {
+      toGeocode.set(addrKey, { address: s.address || '', city: s.city || '', state: s.state || '' });
+    }
+  }
+
+  // Geocode via Mapbox in parallel batches
+  const newEntries = [];
+  let attempted = 0;
+  const entries = [...toGeocode.entries()].slice(0, limit);
+
+  const PARALLEL = 10;
+  for (let i = 0; i < entries.length; i += PARALLEL) {
+    const batch = entries.slice(i, i + PARALLEL);
+    const results = await Promise.all(
+      batch.map(async ([addrKey, { address, city, state }]) => {
+        const query = `${address}, ${city}, ${state}, Brazil`;
+        const coords = await mapboxGeocode(query, token);
+        return { addrKey, coords };
+      })
+    );
+    for (const { addrKey, coords } of results) {
+      attempted++;
+      if (coords) {
+        newEntries.push({ key: addrKey, lat: coords.lat, lng: coords.lng });
+      }
+    }
+  }
+
+  // Save to cache
+  await saveGeocodeCache(env, newEntries);
+
+  // Update station coordinates in D1
+  const newKeyMap = new Map(newEntries.map((e) => [e.key, e]));
+  const updateStmts = [];
+  for (const s of stations) {
+    const addrKey = normKey(s.address || '', s.city || '', s.state || '');
+    const entry = newKeyMap.get(addrKey);
+    if (entry) {
+      const hash = simpleHash(s.id);
+      // ±100m jitter so stations at same address don't stack
+      const jitterLat = ((hash & 0xFFFF) / 0xFFFF - 0.5) * 0.002;
+      const jitterLng = (((hash >> 16) & 0xFFFF) / 0xFFFF - 0.5) * 0.002;
+      updateStmts.push(
+        env.DB.prepare('UPDATE stations SET lat = ?1, lng = ?2 WHERE id = ?3')
+          .bind(entry.lat + jitterLat, entry.lng + jitterLng, s.id)
+      );
+    }
+  }
+  const BATCH = 100;
+  for (let i = 0; i < updateStmts.length; i += BATCH) {
+    await env.DB.batch(updateStmts.slice(i, i + BATCH));
+  }
+
+  return json({
+    ok: true,
+    attempted,
+    geocoded: newEntries.length,
+    stations_updated: updateStmts.length,
+    remaining: toGeocode.size - attempted,
+  });
+}
+
+// ─── Mapbox geocoding ────────────────────────────────────────────────
+const MAPBOX_GEOCODING_URL = 'https://api.mapbox.com/search/geocode/v6/forward';
+
+async function mapboxGeocode(query, token) {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      access_token: token,
+      country: 'BR',
+      limit: '1',
+    });
+    const res = await fetch(`${MAPBOX_GEOCODING_URL}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const f = data.features?.[0];
+    if (!f) return null;
+    const [lng, lat] = f.geometry.coordinates;
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
+async function geocodeNeighborhood(neighborhood, city, state, token) {
+  return mapboxGeocode(`${neighborhood}, ${city}, ${state}, Brazil`, token);
+}
+
+// ─── Address helpers ─────────────────────────────────────────────────
+// Address format: "STREET, NUMBER, NEIGHBORHOOD"
+function extractNeighborhood(address) {
+  if (!address) return '';
+  const parts = address.split(', ');
+  return parts.length >= 3 ? parts[parts.length - 1].trim() : '';
+}
+
+function normKey(part1, part2, part3) {
+  return (part1 + '|' + part2 + '|' + part3)
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+// ─── D1 helpers ──────────────────────────────────────────────────────
+async function ensureTables(env) {
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS geocode_cache (address_key TEXT PRIMARY KEY, lat REAL NOT NULL, lng REAL NOT NULL)'
+  ).run();
+}
+
+async function loadGeocodeCache(env) {
+  const cache = new Map();
+  try {
+    const result = await env.DB.prepare('SELECT address_key, lat, lng FROM geocode_cache').all();
+    for (const row of result.results || []) {
+      cache.set(row.address_key, { lat: row.lat, lng: row.lng });
+    }
+  } catch {}
+  return cache;
+}
+
+async function saveGeocodeCache(env, entries) {
+  if (entries.length === 0) return;
+  const BATCH_SIZE = 100;
+  for (let i = 0; i < entries.length; i += BATCH_SIZE) {
+    const batch = entries.slice(i, i + BATCH_SIZE);
+    const stmts = batch.map(({ key, lat, lng }) =>
+      env.DB.prepare(
+        'INSERT OR REPLACE INTO geocode_cache (address_key, lat, lng) VALUES (?1, ?2, ?3)'
+      ).bind(key, lat, lng)
+    );
+    await env.DB.batch(stmts);
+  }
+}
+
 // ─── Download & parse ANP CSVs ────────────────────────────────────────
 async function refreshData(env) {
-  // Step 1: Build municipality → coords lookup from IBGE
-  console.log('Fetching IBGE municipality coordinates...');
-  const geoLookup = await buildGeoLookup();
-  console.log(`IBGE lookup built: ${geoLookup.size} municipalities`);
+  await ensureTables(env);
 
-  // Step 2: Download both ANP CSVs in parallel
+  // Load geocode cache and municipality fallback in parallel
+  console.log('Loading geocode cache and IBGE municipality coordinates...');
+  const [geocodeCache, geoLookup] = await Promise.all([
+    loadGeocodeCache(env),
+    buildGeoLookup(),
+  ]);
+  console.log(`Geocode cache: ${geocodeCache.size} entries, IBGE lookup: ${geoLookup.size} municipalities`);
+
+  // Download both ANP CSVs in parallel
   console.log('Fetching ANP CSVs...');
   const responses = await Promise.all(
     ANP_CSV_URLS.map(async (csvUrl) => {
@@ -133,7 +317,7 @@ async function refreshData(env) {
   );
   console.log('ANP CSVs downloaded');
 
-  // Step 3: Parse CSVs into station map
+  // Parse CSVs into station map
   const stationMap = new Map();
 
   for (const text of responses) {
@@ -155,8 +339,6 @@ async function refreshData(env) {
     const iDate = col('data da coleta') >= 0 ? col('data da coleta') : col('data');
     const iName = col('revenda');
 
-    console.log('Columns:', header.join(' | '));
-
     for (let i = 1; i < lines.length; i++) {
       if (!lines[i].trim()) continue;
       const f = parseCSVLine(lines[i]);
@@ -168,19 +350,44 @@ async function refreshData(env) {
       const state = f[iState]?.trim() || '';
 
       if (!stationMap.has(cnpj)) {
-        // Geocode by municipality+state
-        const key = normalizeGeoKey(city, state);
-        const coords = geoLookup.get(key);
-        if (!coords) continue; // skip stations we can't geocode
-
-        // Add small random offset so stations in same city don't stack
-        const jitterLat = (Math.random() - 0.5) * 0.01;
-        const jitterLng = (Math.random() - 0.5) * 0.01;
-
         const street = f[iStreet]?.trim() || '';
         const number = f[iNumber]?.trim() || '';
         const neighborhood = iNeighborhood >= 0 ? f[iNeighborhood]?.trim() || '' : '';
         const address = [street, number, neighborhood].filter(Boolean).join(', ');
+
+        // Deterministic jitter based on CNPJ
+        const hash = simpleHash(cnpj);
+
+        // Try geocode cache: full address first, then neighborhood, then municipality
+        const addrKey = normKey(address, city, state);
+        const cachedAddr = geocodeCache.get(addrKey);
+
+        const nKey = neighborhood ? normKey(neighborhood, city, state) : '';
+        const cachedNeighborhood = !cachedAddr && nKey ? geocodeCache.get(nKey) : null;
+
+        let lat, lng;
+        if (cachedAddr) {
+          // Precise address coords — ±100m jitter
+          const jitterLat = ((hash & 0xFFFF) / 0xFFFF - 0.5) * 0.002;
+          const jitterLng = (((hash >> 16) & 0xFFFF) / 0xFFFF - 0.5) * 0.002;
+          lat = cachedAddr.lat + jitterLat;
+          lng = cachedAddr.lng + jitterLng;
+        } else if (cachedNeighborhood) {
+          // Neighborhood coords — ±300m jitter
+          const jitterLat = ((hash & 0xFFFF) / 0xFFFF - 0.5) * 0.006;
+          const jitterLng = (((hash >> 16) & 0xFFFF) / 0xFFFF - 0.5) * 0.006;
+          lat = cachedNeighborhood.lat + jitterLat;
+          lng = cachedNeighborhood.lng + jitterLng;
+        } else {
+          // Fall back to municipality centroid — ±1.1km jitter
+          const munCoords = geoLookup.get(normalizeGeoKey(city, state));
+          if (!munCoords) continue;
+
+          const jitterLat = ((hash & 0xFFFF) / 0xFFFF - 0.5) * 0.02;
+          const jitterLng = (((hash >> 16) & 0xFFFF) / 0xFFFF - 0.5) * 0.02;
+          lat = munCoords.lat + jitterLat;
+          lng = munCoords.lng + jitterLng;
+        }
 
         stationMap.set(cnpj, {
           id: cnpj,
@@ -189,8 +396,8 @@ async function refreshData(env) {
           address,
           city,
           state,
-          lat: coords.lat + jitterLat,
-          lng: coords.lng + jitterLng,
+          lat,
+          lng,
           gasolina: null,
           gasolina_ad: null,
           etanol: null,
@@ -202,6 +409,7 @@ async function refreshData(env) {
 
       // Add price for this fuel product
       const station = stationMap.get(cnpj);
+      if (!station) continue;
       const product = (f[iProduct] || '').toLowerCase();
       const price = parseFloat((f[iPrice] || '').replace(',', '.'));
       if (isNaN(price)) continue;
@@ -226,9 +434,9 @@ async function refreshData(env) {
     }
   }
 
-  console.log(`Parsed ${stationMap.size} unique stations with coordinates`);
+  console.log(`Parsed ${stationMap.size} unique stations`);
 
-  // Step 4: Clear and re-insert into D1
+  // Clear and re-insert stations into D1
   await env.DB.prepare('DELETE FROM stations').run();
 
   const stations = [...stationMap.values()];
@@ -257,20 +465,17 @@ async function buildGeoLookup() {
 
   const lookup = new Map();
   for (const m of municipalities) {
-    // IBGE returns: municipio-nome, UF-sigla, mesorregiao-*, microrregiao-*
-    // Coordinates come from the region data — we use the IBGE geocoding endpoint instead
     const name = m['municipio-nome'] || m.nome || '';
     const uf = m['UF-sigla'] || '';
     const id = m['municipio-id'] || m.id;
 
     if (name && uf && id) {
       const key = normalizeGeoKey(name, uf);
-      // We'll resolve coords separately — for now store the ID
       lookup.set(key, { id, name, uf });
     }
   }
 
-  // Use a community-maintained dataset of Brazilian municipality coordinates
+  // Community-maintained dataset of Brazilian municipality coordinates
   const coordsJsonRes = await fetch(
     'https://raw.githubusercontent.com/kelvins/municipios-brasileiros/main/json/municipios.json'
   );
@@ -280,7 +485,6 @@ async function buildGeoLookup() {
 
   const geoLookup = new Map();
   for (const m of coordsJson) {
-    // Format: { codigo_ibge, nome, latitude, longitude, capital, codigo_uf, silesUF }
     const name = m.nome || '';
     const uf = m.codigo_uf;
     const lat = parseFloat(m.latitude);
@@ -288,7 +492,6 @@ async function buildGeoLookup() {
 
     if (!name || isNaN(lat) || isNaN(lng)) continue;
 
-    // We need to map codigo_uf (number) to state abbreviation
     const ufSigla = UF_CODES[uf] || '';
     if (!ufSigla) continue;
 
@@ -314,6 +517,15 @@ function normalizeGeoKey(city, state) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim();
+}
+
+// ─── Deterministic hash for stable jitter ────────────────────────────
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return h >>> 0; // unsigned
 }
 
 // ─── CSV parser (ANP uses ; as delimiter) ─────────────────────────────

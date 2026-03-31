@@ -1,18 +1,35 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { formatPrice, formatUpdated } from '../utils/format';
 import { formatDistance } from '../utils/geo';
 import { getBrandLogoUrl } from '../utils/brandLogo';
+import { COUNTRIES } from '../services/countries';
+import { getFuelColor } from '../utils/fuelColors';
 
 export default function StationList({
   stations,
   fuelType,
   currency,
+  countryCode,
   loading,
   error,
   onStationClick,
   onStationHover,
+  onFuelChange,
 }) {
   const [sortBy, setSortBy] = useState('price'); // 'price' | 'distance'
+  const [fuelDropdownOpen, setFuelDropdownOpen] = useState(false);
+  const fuelDropdownRef = useRef(null);
+
+  // Close fuel dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (fuelDropdownRef.current && !fuelDropdownRef.current.contains(e.target)) {
+        setFuelDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const sorted = useMemo(() => {
     const withPrice = stations.filter((s) => s.prices[fuelType] != null);
@@ -64,7 +81,46 @@ export default function StationList({
   return (
     <>
       <div className="station-list-header">
-        <span className="station-count">{sorted.length} stations</span>
+        {countryCode && COUNTRIES[countryCode] && (
+          <div className="station-list-filters">
+            <span className="detected-country">{COUNTRIES[countryCode].flag} {COUNTRIES[countryCode].name}</span>
+            <div className="fuel-dropdown" ref={fuelDropdownRef}>
+              <button
+                className="fuel-dropdown-trigger"
+                onClick={() => setFuelDropdownOpen(!fuelDropdownOpen)}
+              >
+                <span
+                  className="fuel-color-dot"
+                  style={{ background: getFuelColor(fuelType) }}
+                />
+                {(COUNTRIES[countryCode].fuelTypes || []).find((f) => f.id === fuelType)?.label || fuelType}
+                <svg className="fuel-dropdown-arrow" viewBox="0 0 12 8" width="10" height="6" fill="currentColor">
+                  <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                </svg>
+              </button>
+              {fuelDropdownOpen && (
+                <ul className="fuel-dropdown-menu">
+                  {(COUNTRIES[countryCode].fuelTypes || []).map((f) => (
+                    <li
+                      key={f.id}
+                      className={`fuel-dropdown-item ${f.id === fuelType ? 'active' : ''}`}
+                      onMouseDown={() => {
+                        onFuelChange?.(f.id);
+                        setFuelDropdownOpen(false);
+                      }}
+                    >
+                      <span
+                        className="fuel-color-dot"
+                        style={{ background: getFuelColor(f.id) }}
+                      />
+                      {f.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
         <div className="sort-toggle">
           <button
             className={`sort-btn ${sortBy === 'price' ? 'active' : ''}`}
