@@ -6,6 +6,7 @@ export const COUNTRIES = {
     center: [2.3522, 46.6034],
     zoom: 6,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'E10', label: 'SP95-E10' },
@@ -26,6 +27,7 @@ export const COUNTRIES = {
     center: [10.4515, 51.1657],
     zoom: 6,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'e5', label: 'Super E5' },
@@ -33,7 +35,7 @@ export const COUNTRIES = {
       { id: 'diesel', label: 'Diesel' },
     ],
     defaultFuel: 'e5',
-    source: 'Tankerk\u00F6nig (MTS-K)',
+    source: 'Tanker\u00F6nig (MTS-K)',
     sourceUrl: 'https://creativecommons.tankerkoenig.de/',
   },
   HR: {
@@ -43,15 +45,16 @@ export const COUNTRIES = {
     center: [15.978, 45.815],
     zoom: 7,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
-      { id: 'e5', label: 'Super E5' },
-      { id: 'e10', label: 'Super E10' },
-      { id: 'diesel', label: 'Diesel' },
+      { id: 'eurosuper95', label: 'Eurosuper 95' },
+      { id: 'eurodizel', label: 'Eurodizel' },
+      { id: 'lpg', label: 'UNP (LPG)' },
     ],
-    defaultFuel: 'e5',
-    source: 'Tankerk\u00F6nig (MTS-K)',
-    sourceUrl: 'https://creativecommons.tankerkoenig.de/',
+    defaultFuel: 'eurosuper95',
+    source: 'Ministarstvo gospodarstva (mzoe-gor.hr)',
+    sourceUrl: 'https://mzoe-gor.hr/',
   },
   LU: {
     code: 'LU',
@@ -60,15 +63,16 @@ export const COUNTRIES = {
     center: [6.1296, 49.8153],
     zoom: 10,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
-      { id: 'e5', label: 'Super E5' },
-      { id: 'e10', label: 'Super E10' },
-      { id: 'diesel', label: 'Diesel' },
+      { id: 'E10', label: 'Super 95 (E10)' },
+      { id: 'SP98', label: 'Super 98' },
+      { id: 'diesel', label: 'Diesel (B7)' },
     ],
-    defaultFuel: 'e5',
-    source: 'Tankerk\u00F6nig (MTS-K)',
-    sourceUrl: 'https://creativecommons.tankerkoenig.de/',
+    defaultFuel: 'E10',
+    source: 'Carbu.com',
+    sourceUrl: 'https://carbu.com/luxembourg/',
   },
   PT: {
     code: 'PT',
@@ -77,15 +81,17 @@ export const COUNTRIES = {
     center: [-8.2245, 39.3999],
     zoom: 7,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
-      { id: 'e5', label: 'Super E5' },
-      { id: 'e10', label: 'Super E10' },
-      { id: 'diesel', label: 'Diesel' },
+      { id: 'gasolina_95', label: 'Gasolina 95' },
+      { id: 'gasoleo', label: 'Gas\u00F3leo' },
+      { id: 'gasoleo_especial', label: 'Gas\u00F3leo Especial' },
+      { id: 'gpl', label: 'GPL Auto' },
     ],
-    defaultFuel: 'e5',
-    source: 'Tankerk\u00F6nig (MTS-K)',
-    sourceUrl: 'https://creativecommons.tankerkoenig.de/',
+    defaultFuel: 'gasolina_95',
+    source: 'DGEG (precoscombustiveis.dgeg.gov.pt)',
+    sourceUrl: 'https://precoscombustiveis.dgeg.gov.pt/',
   },
   SI: {
     code: 'SI',
@@ -94,15 +100,17 @@ export const COUNTRIES = {
     center: [14.9955, 46.1512],
     zoom: 9,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
-      { id: 'e5', label: 'Super E5' },
-      { id: 'e10', label: 'Super E10' },
-      { id: 'diesel', label: 'Diesel' },
+      { id: '95', label: 'NMB-95' },
+      { id: 'dizel', label: 'Diesel' },
+      { id: '98', label: 'NMB-98' },
+      { id: 'avtoplin-lpg', label: 'LPG' },
     ],
-    defaultFuel: 'e5',
-    source: 'Tankerk\u00F6nig (MTS-K)',
-    sourceUrl: 'https://creativecommons.tankerkoenig.de/',
+    defaultFuel: '95',
+    source: 'goriva.si',
+    sourceUrl: 'https://goriva.si/',
   },
   UK: {
     code: 'UK',
@@ -111,6 +119,7 @@ export const COUNTRIES = {
     center: [-1.1743, 52.3555],
     zoom: 6,
     currency: 'p',
+    decimals: 1,
     unit: 'L',
     fuelTypes: [
       { id: 'unleaded', label: 'Unleaded' },
@@ -128,6 +137,7 @@ export const COUNTRIES = {
     center: [-3.7038, 40.4168],
     zoom: 6,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'gasolina95', label: 'Gasolina 95' },
@@ -146,6 +156,7 @@ export const COUNTRIES = {
     center: [12.5674, 41.8719],
     zoom: 6,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'benzina', label: 'Benzina' },
@@ -164,10 +175,11 @@ export const COUNTRIES = {
     center: [13.3333, 47.3333],
     zoom: 7,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'SUP', label: 'Super (E5)' },
-      { id: 'GOE', label: 'Diesel' },
+      { id: 'DIE', label: 'Diesel' },
       { id: 'GAS', label: 'CNG/Erdgas' },
     ],
     defaultFuel: 'SUP',
@@ -181,6 +193,7 @@ export const COUNTRIES = {
     center: [127.7669, 35.9078],
     zoom: 7,
     currency: '\u20A9',
+    decimals: 0,
     unit: 'L',
     fuelTypes: [
       { id: 'B027', label: 'Gasoline' },
@@ -198,7 +211,8 @@ export const COUNTRIES = {
     flag: '\u{1F1E8}\u{1F1F1}',
     center: [-70.6693, -33.4489],
     zoom: 6,
-    currency: '$',
+    currency: 'CLP',
+    decimals: 0,
     unit: 'L',
     fuelTypes: [
       { id: 'gasolina93', label: 'Gasolina 93' },
@@ -218,6 +232,7 @@ export const COUNTRIES = {
     center: [133.7751, -25.2744],
     zoom: 4,
     currency: 'c',
+    decimals: 1,
     unit: 'L',
     fuelTypes: [
       { id: 'E10', label: 'E10' },
@@ -237,7 +252,8 @@ export const COUNTRIES = {
     flag: '\u{1F1F2}\u{1F1FD}',
     center: [-99.1332, 19.4326],
     zoom: 6,
-    currency: '$',
+    currency: 'MX$',
+    decimals: 2,
     unit: 'L',
     fuelTypes: [
       { id: 'regular', label: 'Regular' },
@@ -255,6 +271,7 @@ export const COUNTRIES = {
     center: [-47.8825, -15.7942],
     zoom: 5,
     currency: 'R$',
+    decimals: 2,
     unit: 'L',
     fuelTypes: [
       { id: 'gasolina', label: 'Gasolina Comum' },
@@ -273,7 +290,8 @@ export const COUNTRIES = {
     flag: '\u{1F1E6}\u{1F1F7}',
     center: [-58.3816, -34.6037],
     zoom: 5,
-    currency: '$',
+    currency: 'ARS',
+    decimals: 0,
     unit: 'L',
     fuelTypes: [
       { id: 'nafta_super', label: 'Nafta S\u00FAper' },
@@ -293,6 +311,7 @@ export const COUNTRIES = {
     center: [8.2275, 46.8182],
     zoom: 7,
     currency: 'CHF',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'E95', label: 'Benzin 95' },
@@ -310,6 +329,7 @@ export const COUNTRIES = {
     center: [9.5018, 56.2639],
     zoom: 7,
     currency: 'kr',
+    decimals: 2,
     unit: 'L',
     fuelTypes: [
       { id: 'e10', label: 'Benzin 95 E10' },
@@ -328,6 +348,7 @@ export const COUNTRIES = {
     center: [174.886, -40.9006],
     zoom: 6,
     currency: 'NZ$',
+    decimals: 2,
     unit: 'L',
     fuelTypes: [
       { id: '91', label: '91 Octane' },
@@ -346,6 +367,7 @@ export const COUNTRIES = {
     center: [5.2913, 52.1326],
     zoom: 8,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'euro95', label: 'Euro 95' },
@@ -363,6 +385,7 @@ export const COUNTRIES = {
     center: [4.4699, 50.5039],
     zoom: 8,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'E10', label: 'Super 95 (E10)' },
@@ -381,6 +404,7 @@ export const COUNTRIES = {
     center: [23.7275, 37.9838],
     zoom: 7,
     currency: '\u20AC',
+    decimals: 3,
     unit: 'L',
     fuelTypes: [
       { id: 'unleaded_95', label: 'Unleaded 95' },
@@ -399,6 +423,7 @@ export const COUNTRIES = {
     center: [101.6869, 3.139],
     zoom: 7,
     currency: 'RM',
+    decimals: 2,
     unit: 'L',
     fuelTypes: [
       { id: 'RON95', label: 'RON 95' },
@@ -416,6 +441,7 @@ export const COUNTRIES = {
     center: [55.2708, 25.2048],
     zoom: 8,
     currency: 'AED',
+    decimals: 2,
     unit: 'L',
     fuelTypes: [
       { id: 'super98', label: 'Super 98' },
@@ -434,6 +460,7 @@ export const COUNTRIES = {
     center: [28.0473, -26.2041],
     zoom: 6,
     currency: 'R',
+    decimals: 2,
     unit: 'L',
     fuelTypes: [
       { id: 'ULP95', label: '95 Unleaded' },
@@ -444,6 +471,24 @@ export const COUNTRIES = {
     defaultFuel: 'ULP95',
     source: 'Dept. of Energy',
     sourceUrl: 'https://www.energy.gov.za/',
+  },
+  IN: {
+    code: 'IN',
+    name: 'India',
+    flag: '\u{1F1EE}\u{1F1F3}',
+    center: [78.9629, 20.5937],
+    zoom: 5,
+    currency: '\u20B9',
+    decimals: 2,
+    unit: 'L',
+    fuelTypes: [
+      { id: 'petrol', label: 'Petrol' },
+      { id: 'diesel', label: 'Diesel' },
+      { id: 'cng', label: 'CNG' },
+    ],
+    defaultFuel: 'petrol',
+    source: 'OpenStreetMap',
+    sourceUrl: 'https://www.openstreetmap.org/',
   },
 };
 

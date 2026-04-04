@@ -34,7 +34,7 @@ async function fetchStationsForType(lat, lng, fuelType) {
       city: `${s.postcode || ''} ${s.plaats || ''}`.trim(),
       lat: s.latitude,
       lng: s.longitude,
-      fuelType: fp.tech || fuelType,
+      fuelType,
       price: fp.prijs ? parseFloat(fp.prijs) : null,
       updatedAt: fp.datum || null,
     };

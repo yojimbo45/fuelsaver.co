@@ -1,45 +1,88 @@
-import { filterByDistance, gridCell } from '../lib/geo.js';
+/**
+ * Slovenia — goriva.si API (official fuel price data).
+ *
+ * Paginated JSON API: 25 stations per page, ~22 pages (~552 total).
+ * Each station includes inline prices.
+ *
+ * Tier A: bulk-cache with cron refresh.
+ * Country code: SI
+ */
+
+import { filterByDistance } from '../lib/geo.js';
 import { json } from '../lib/response.js';
-import { getGridCache, putGridCache } from '../lib/kv.js';
-import { queryOverpass } from '../lib/overpass.js';
+import { getStations, putStations } from '../lib/kv.js';
 
 const COUNTRY = 'SI';
+const API_URL = 'https://goriva.si/api/v1/search/?format=json';
+const PAGE_SIZE = 25;
 
-const BRAND_MAP = {
-  petrol: 'Petrol', mol: 'MOL', omv: 'OMV',
-  'hofer (avia)': 'Hofer (AVIA)', avia: 'AVIA', euroil: 'Euroil',
-};
+// Fuel types we care about from the goriva.si response
+const FUEL_KEYS = ['95', 'dizel', '98', 'avtoplin-lpg'];
 
-function mapElements(elements) {
-  return elements.map((el) => {
-    const elLat = el.lat || el.center?.lat;
-    const elLng = el.lon || el.center?.lon;
-    if (!elLat || !elLng) return null;
-    const tags = el.tags || {};
-    const brand = (tags.brand || tags.name || 'Station').trim();
-    return {
-      id: `SI-${el.id}`,
-      brand: BRAND_MAP[brand.toLowerCase()] || brand,
-      name: tags.name || brand,
-      address: [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' '),
-      city: tags['addr:city'] || tags['addr:suburb'] || '',
-      lat: elLat, lng: elLng, country: COUNTRY, prices: {}, updatedAt: null,
-    };
-  }).filter(Boolean);
+// ─── Cron: fetch all pages, normalise, store in KV ──────────────────
+export async function refresh(env) {
+  const allStations = [];
+  let page = 1;
+
+  while (true) {
+    const res = await fetch(`${API_URL}&page=${page}`);
+    if (!res.ok) throw new Error(`goriva.si API page ${page} returned ${res.status}`);
+
+    const data = await res.json();
+    const results = Array.isArray(data) ? data : data.results || [];
+
+    for (const station of results) {
+      const normalized = normalize(station);
+      if (normalized) allStations.push(normalized);
+    }
+
+    if (results.length < PAGE_SIZE) break;
+    page++;
+  }
+
+  await putStations(COUNTRY, allStations, env);
+  console.log(`[SI] Refreshed ${allStations.length} stations (${page} pages)`);
 }
 
+// ─── Normalize a single station from the goriva.si API ──────────────
+function normalize(station) {
+  const lat = station.lat;
+  const lng = station.lng;
+  if (lat == null || lng == null) return null;
+
+  const prices = {};
+  if (station.prices) {
+    for (const key of FUEL_KEYS) {
+      const val = station.prices[key];
+      if (val != null) {
+        prices[key] = val;
+      }
+    }
+  }
+
+  return {
+    id: `SI-${station.pk}`,
+    brand: station.name || 'Station',
+    name: station.name || 'Station',
+    address: station.address || '',
+    city: station.zip_code || '',
+    lat,
+    lng,
+    country: COUNTRY,
+    prices,
+    updatedAt: null,
+  };
+}
+
+// ─── Query ──────────────────────────────────────────────────────────
 export async function handleQuery(url, env) {
   const lat = parseFloat(url.searchParams.get('lat'));
   const lng = parseFloat(url.searchParams.get('lng'));
   const radiusKm = parseFloat(url.searchParams.get('radius') || '15');
-  const grid = gridCell(lat, lng);
-  const cacheKey = `cache:${COUNTRY}:${grid.lat}:${grid.lng}`;
-  let stations = await getGridCache(cacheKey, env);
-  if (!stations) {
-    const elements = await queryOverpass(grid.lat, grid.lng, Math.min(radiusKm * 1000, 25000));
-    stations = mapElements(elements);
-    await putGridCache(cacheKey, stations, env, 600);
-  }
-  const filtered = filterByDistance(stations, lat, lng, radiusKm);
+
+  const allStations = await getStations(COUNTRY, env);
+  if (!allStations) return json({ error: 'Data not yet cached, try again later' }, 503);
+
+  const filtered = filterByDistance(allStations, lat, lng, radiusKm);
   return json({ stations: filtered, count: filtered.length });
 }

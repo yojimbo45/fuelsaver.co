@@ -9,6 +9,7 @@ export default function StationList({
   stations,
   fuelType,
   currency,
+  decimals,
   countryCode,
   loading,
   error,
@@ -33,14 +34,17 @@ export default function StationList({
 
   const sorted = useMemo(() => {
     const withPrice = stations.filter((s) => s.prices[fuelType] != null);
-    if (sortBy === 'price') {
-      return [...withPrice].sort((a, b) => a.prices[fuelType] - b.prices[fuelType]);
+    // If no stations have the selected fuel price, show all stations sorted by distance
+    const list = withPrice.length > 0 ? withPrice : [...stations];
+    if (sortBy === 'price' && withPrice.length > 0) {
+      return [...list].sort((a, b) => (a.prices[fuelType] ?? Infinity) - (b.prices[fuelType] ?? Infinity));
     }
-    return [...withPrice].sort((a, b) => (a.distance || 0) - (b.distance || 0));
+    return [...list].sort((a, b) => (a.distance || 0) - (b.distance || 0));
   }, [stations, fuelType, sortBy]);
 
-  const cheapestPrice = sorted.length ? sorted[0]?.prices[fuelType] : null;
-  const expensivePrice = sorted.length ? sorted[sorted.length - 1]?.prices[fuelType] : null;
+  const withPrices = sorted.filter((s) => s.prices[fuelType] != null);
+  const cheapestPrice = withPrices.length ? withPrices[0]?.prices[fuelType] : null;
+  const expensivePrice = withPrices.length ? withPrices[withPrices.length - 1]?.prices[fuelType] : null;
 
   if (loading) {
     return (
@@ -143,7 +147,7 @@ export default function StationList({
           const isExpensive = price === expensivePrice && sorted.length > 1;
           const savingVsExpensive = expensivePrice != null ? expensivePrice - price : 0;
 
-          const logoUrl = getBrandLogoUrl(station.brand);
+          const logoUrl = station.logo || getBrandLogoUrl(station.brand);
 
           return (
             <div
@@ -169,6 +173,9 @@ export default function StationList({
                     <span className="station-demo-badge">Demo</span>
                   )}
                 </div>
+                {station.name && station.name !== station.brand && (
+                  <div className="station-name">{station.name}</div>
+                )}
                 <div className="station-address">
                   {station.address}{station.city ? `, ${station.city}` : ''}
                 </div>
@@ -177,7 +184,7 @@ export default function StationList({
                 )}
               </div>
               <div className="station-price-col">
-                <div className="station-price">{formatPrice(price, currency)}</div>
+                <div className="station-price">{formatPrice(price, currency, decimals)}</div>
                 {station.updatedAt && (
                   <div className="station-updated">
                     {formatUpdated(station.updatedAt)}
@@ -185,7 +192,7 @@ export default function StationList({
                 )}
                 {savingVsExpensive > 0.001 && (
                   <div className="station-saving saving-positive">
-                    -{formatPrice(savingVsExpensive, currency)}
+                    -{formatPrice(savingVsExpensive, currency, decimals)}
                   </div>
                 )}
               </div>

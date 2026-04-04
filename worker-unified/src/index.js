@@ -13,6 +13,9 @@ import * as argentina from './countries/argentina.js';
 import * as denmark from './countries/denmark.js';
 import * as australiaWA from './countries/australia-wa.js';
 import * as malaysia from './countries/malaysia.js';
+import * as croatia from './countries/croatia.js';
+import * as slovenia from './countries/slovenia.js';
+import * as portugal from './countries/portugal.js';
 
 // Tier B — proxy + grid-cache (on-demand)
 import * as tankerkoenig from './countries/tankerkoenig.js';
@@ -25,10 +28,8 @@ import * as belgium from './countries/belgium.js';
 import * as greece from './countries/greece.js';
 import * as uae from './countries/uae.js';
 import * as southAfrica from './countries/south-africa.js';
-import * as slovenia from './countries/slovenia.js';
-import * as croatia from './countries/croatia.js';
-import * as portugal from './countries/portugal.js';
 import * as luxembourg from './countries/luxembourg.js';
+import * as india from './countries/india.js';
 
 // Tier C — proxy
 import * as brazil from './countries/brazil.js';
@@ -37,15 +38,13 @@ const TIER_A = {
   fr: france, es: spain, it: italy, uk: uk, ch: switzerland,
   cl: chile, mx: mexico, ar: argentina,
   dk: denmark, wa: australiaWA, my: malaysia,
+  hr: croatia, si: slovenia, pt: portugal,
 };
 
 const HANDLERS = {
   ...TIER_A,
   de: tankerkoenig,
-  hr: croatia,
   lu: luxembourg,
-  pt: portugal,
-  si: slovenia,
   at: austria,
   kr: southKorea,
   au: australia,
@@ -56,6 +55,7 @@ const HANDLERS = {
   gr: greece,
   ae: uae,
   za: southAfrica,
+  in: india,
 };
 
 export default {
@@ -73,9 +73,21 @@ export default {
 
     // Manual cron trigger endpoint
     if (url.pathname === '/cron') {
-      const ctx = { waitUntil: (p) => p };
-      await this.scheduled({}, env, ctx);
-      return json({ ok: true, message: 'Cron refresh completed' });
+      const report = {};
+      const results = await Promise.allSettled(
+        Object.entries(TIER_A).map(async ([code, mod]) => {
+          const start = Date.now();
+          await mod.refresh(env);
+          report[code] = { ok: true, ms: Date.now() - start };
+        })
+      );
+      for (const [i, r] of results.entries()) {
+        if (r.status === 'rejected') {
+          const code = Object.keys(TIER_A)[i];
+          report[code] = { ok: false, error: String(r.reason) };
+        }
+      }
+      return json({ ok: true, report });
     }
 
     // One-time Mapbox brand crawl for France
@@ -102,6 +114,24 @@ export default {
     if (url.pathname === '/api/fr/build-brands-fsq') {
       try {
         const result = await france.buildBrandsFoursquare(env);
+        return json({ ok: true, ...result });
+      } catch (e) {
+        return json({ error: e.message }, 500);
+      }
+    }
+
+    // Spain brand enrichment endpoints
+    if (url.pathname === '/api/es/build-brands-fsq') {
+      try {
+        const result = await spain.buildBrandsFoursquare(env);
+        return json({ ok: true, ...result });
+      } catch (e) {
+        return json({ error: e.message }, 500);
+      }
+    }
+    if (url.pathname === '/api/es/build-brands-google') {
+      try {
+        const result = await spain.buildBrandsGoogle(env);
         return json({ ok: true, ...result });
       } catch (e) {
         return json({ error: e.message }, 500);
@@ -184,6 +214,53 @@ export default {
 // ─── Logo proxy ──────────────────────────────────────────────────────
 import { CORS_HEADERS } from './lib/cors.js';
 
+// Brandfetch API keys — rotated when one runs out of credits
+const BRANDFETCH_KEYS = [
+  'YZ7RNm+jFb1vT90nDK+3Ro9lETa9J/xGXGEj045MoUI=',
+  'lHTaIBGNQZhX0nKEZZhy0U-0tD0E1g7048jq0GvH5wWurNYRj8G-MNbIQcpRJaII8H8LZZ1b9ne0ku56He54TQ',
+  'DB_E8mwZQg89a3fZ1Agvy-zTg1uLZV-d8Y8ffEuJPHtq-4r62-sF9CnY2GNlmue6OdKlcdF9kjaq4CvcjOlwlg',
+  'EE7fKTOY-gtsdHbzELay8tgEiVTYDXUbeHdxBIhirxGZ55UV2ipn_6ssuYbjwkk0yZcBNPbEcqk7d8tMbXlD3A',
+  'Hf1PyCkb3WR__RFgzHjtrEDR_li1xzWjB1Km2Be39U-KV6j1qCLpOQLHlZdMaCqKRFC2KoMIF3hdXuSi71LBog',
+  'EUIaIIR-Rg7I6K2vh_jJyaS1dukGh-wL3gkOQ7PGBxYHlpXAp5oxIDgYDXnfmVOpKq14Nyr-KAHiyF2Yjk6BDg',
+];
+
+async function fetchBrandfetchLogo(domain) {
+  for (const key of BRANDFETCH_KEYS) {
+    try {
+      const res = await fetch(`https://api.brandfetch.io/v2/brands/${domain}`, {
+        headers: { Authorization: `Bearer ${key}` },
+      });
+      if (res.status === 401 || res.status === 403 || res.status === 429) continue; // out of credits, try next key
+      if (!res.ok) return null; // brand not found
+      const data = await res.json();
+      // Find the best logo: prefer icon, then logo, pick PNG/JPEG over SVG
+      const allLogos = [...(data.logos || [])];
+      let bestUrl = null;
+      for (const logo of allLogos) {
+        const formats = logo.formats || [];
+        // Prefer icon type, then logo type
+        const pngOrJpg = formats.find((f) => f.format === 'png' || f.format === 'jpeg');
+        const svg = formats.find((f) => f.format === 'svg');
+        const pick = pngOrJpg || svg;
+        if (pick && pick.src) {
+          bestUrl = pick.src;
+          if (logo.type === 'icon') break; // icon is ideal, stop searching
+        }
+      }
+      if (!bestUrl) return null;
+      // Fetch the actual image
+      const imgRes = await fetch(bestUrl);
+      if (!imgRes.ok) return null;
+      const buf = await imgRes.arrayBuffer();
+      if (buf.byteLength < 100) return null;
+      return buf;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 async function handleLogo(domain, env) {
   if (!domain || domain.length > 100) {
     return new Response(null, { status: 400 });
@@ -191,7 +268,7 @@ async function handleLogo(domain, env) {
 
   const cacheKey = `logo:${domain}`;
 
-  // Check KV cache (contains Brandfetch high-quality logos + fallback fetched logos)
+  // Check KV cache
   const cached = await env.FUEL_KV.get(cacheKey, { type: 'arrayBuffer' });
   if (cached) {
     return new Response(cached, {
@@ -203,13 +280,17 @@ async function handleLogo(domain, env) {
     });
   }
 
-  // Fallback sources (KV had nothing — brand not pre-loaded via Brandfetch)
   let imgData = null;
 
-  // 1. Uplead (consistent 128px PNG, decent quality)
-  imgData = await fetchImage(`https://logo.uplead.com/${domain}`, 500);
+  // 1. Brandfetch (best quality, rotates keys on credit exhaustion)
+  imgData = await fetchBrandfetchLogo(domain);
 
-  // 2. Google favicons as last resort only
+  // 2. Uplead (consistent 128px PNG)
+  if (!imgData) {
+    imgData = await fetchImage(`https://logo.uplead.com/${domain}`, 500);
+  }
+
+  // 3. Google favicons as last resort
   if (!imgData) {
     imgData = await fetchImage(
       `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=256`,
@@ -221,8 +302,8 @@ async function handleLogo(domain, env) {
     return new Response(null, { status: 404, headers: CORS_HEADERS });
   }
 
-  // Cache in KV for 7 days
-  await env.FUEL_KV.put(cacheKey, imgData, { expirationTtl: 604800 });
+  // Cache permanently — logos don't change
+  await env.FUEL_KV.put(cacheKey, imgData);
 
   return new Response(imgData, {
     headers: {

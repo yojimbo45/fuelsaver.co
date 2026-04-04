@@ -1,9 +1,334 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
   <url>
     <loc>https://fuelsaver.one/</loc>
-    <lastmod>2026-03-16</lastmod>
+    <lastmod>2026-04-03</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <!-- France -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Germany -->
+  <url>
+    <loc>https://fuelsaver.one/?country=DE</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Croatia -->
+  <url>
+    <loc>https://fuelsaver.one/?country=HR</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Luxembourg -->
+  <url>
+    <loc>https://fuelsaver.one/?country=LU</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Portugal -->
+  <url>
+    <loc>https://fuelsaver.one/?country=PT</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Slovenia -->
+  <url>
+    <loc>https://fuelsaver.one/?country=SI</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- United Kingdom -->
+  <url>
+    <loc>https://fuelsaver.one/?country=UK</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Spain -->
+  <url>
+    <loc>https://fuelsaver.one/?country=ES</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Italy -->
+  <url>
+    <loc>https://fuelsaver.one/?country=IT</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Austria -->
+  <url>
+    <loc>https://fuelsaver.one/?country=AT</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- South Korea -->
+  <url>
+    <loc>https://fuelsaver.one/?country=KR</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Chile -->
+  <url>
+    <loc>https://fuelsaver.one/?country=CL</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Australia -->
+  <url>
+    <loc>https://fuelsaver.one/?country=AU</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Mexico -->
+  <url>
+    <loc>https://fuelsaver.one/?country=MX</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Brazil -->
+  <url>
+    <loc>https://fuelsaver.one/?country=BR</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Argentina -->
+  <url>
+    <loc>https://fuelsaver.one/?country=AR</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Switzerland -->
+  <url>
+    <loc>https://fuelsaver.one/?country=CH</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Denmark -->
+  <url>
+    <loc>https://fuelsaver.one/?country=DK</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- New Zealand -->
+  <url>
+    <loc>https://fuelsaver.one/?country=NZ</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Netherlands -->
+  <url>
+    <loc>https://fuelsaver.one/?country=NL</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Belgium -->
+  <url>
+    <loc>https://fuelsaver.one/?country=BE</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Greece -->
+  <url>
+    <loc>https://fuelsaver.one/?country=GR</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Malaysia -->
+  <url>
+    <loc>https://fuelsaver.one/?country=MY</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- UAE -->
+  <url>
+    <loc>https://fuelsaver.one/?country=AE</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- South Africa -->
+  <url>
+    <loc>https://fuelsaver.one/?country=ZA</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- India -->
+  <url>
+    <loc>https://fuelsaver.one/?country=IN</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ===== France — Top 20 Cities ===== -->
+  <!-- Paris -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Paris&amp;lat=48.8566&amp;lng=2.3522</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Marseille -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Marseille&amp;lat=43.2965&amp;lng=5.3698</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Lyon -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Lyon&amp;lat=45.764&amp;lng=4.8357</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Toulouse -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Toulouse&amp;lat=43.6047&amp;lng=1.4442</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Nice -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Nice&amp;lat=43.7102&amp;lng=7.262</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Nantes -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Nantes&amp;lat=47.2184&amp;lng=-1.5536</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Strasbourg -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Strasbourg&amp;lat=48.5734&amp;lng=7.7521</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Montpellier -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Montpellier&amp;lat=43.6108&amp;lng=3.8767</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Bordeaux -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Bordeaux&amp;lat=44.8378&amp;lng=-0.5792</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Lille -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Lille&amp;lat=50.6292&amp;lng=3.0573</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Rennes -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Rennes&amp;lat=48.1173&amp;lng=-1.6778</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Reims -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Reims&amp;lat=49.2583&amp;lng=4.0317</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Saint-Étienne -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Saint-%C3%89tienne&amp;lat=45.4397&amp;lng=4.3872</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Le Havre -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Le+Havre&amp;lat=49.4944&amp;lng=0.1079</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Toulon -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Toulon&amp;lat=43.1242&amp;lng=5.928</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Grenoble -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Grenoble&amp;lat=45.1885&amp;lng=5.7245</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Dijon -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Dijon&amp;lat=47.322&amp;lng=5.0415</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Angers -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Angers&amp;lat=47.4784&amp;lng=-0.5632</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Nîmes -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=N%C3%AEmes&amp;lat=43.8367&amp;lng=4.3601</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Aix-en-Provence -->
+  <url>
+    <loc>https://fuelsaver.one/?country=FR&amp;q=Aix-en-Provence&amp;lat=43.5297&amp;lng=5.4474</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>

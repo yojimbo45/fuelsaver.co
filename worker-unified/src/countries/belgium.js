@@ -1,42 +1,10 @@
 import { filterByDistance, gridCell } from '../lib/geo.js';
 import { json } from '../lib/response.js';
 import { getGridCache, putGridCache } from '../lib/kv.js';
-import { queryOverpass } from '../lib/overpass.js';
+import { scrapeCarbuStations } from '../lib/carbu.js';
 
 const COUNTRY = 'BE';
-
-// Belgium sets daily maximum fuel prices — stations can charge up to this
-// These are approximate max prices (EUR/L). Updated periodically.
-const BRAND_MAP = {
-  totalenergies: 'TotalEnergies', total: 'TotalEnergies',
-  shell: 'Shell', esso: 'Esso', texaco: 'Texaco',
-  q8: 'Q8', lukoil: 'Lukoil', gulf: 'Gulf', octa: 'Octa+',
-  'octa+': 'Octa+', gabriels: 'Gabriels', dats24: 'DATS 24',
-};
-
-function mapElements(elements) {
-  return elements.map((el) => {
-    const elLat = el.lat || el.center?.lat;
-    const elLng = el.lon || el.center?.lon;
-    if (!elLat || !elLng) return null;
-
-    const tags = el.tags || {};
-    const brand = (tags.brand || tags.name || 'Station').trim();
-
-    return {
-      id: `BE-${el.id}`,
-      brand: BRAND_MAP[brand.toLowerCase()] || brand,
-      name: tags.name || brand,
-      address: [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' '),
-      city: tags['addr:city'] || tags['addr:suburb'] || '',
-      lat: elLat,
-      lng: elLng,
-      country: COUNTRY,
-      prices: {},
-      updatedAt: null,
-    };
-  }).filter(Boolean);
-}
+const FUEL_MAP = { GO: 'diesel', E10: 'E10', SP98: 'SP98' };
 
 export async function handleQuery(url, env) {
   const lat = parseFloat(url.searchParams.get('lat'));
@@ -48,9 +16,15 @@ export async function handleQuery(url, env) {
 
   let stations = await getGridCache(cacheKey, env);
   if (!stations) {
-    const radiusM = Math.min(radiusKm * 1000, 25000);
-    const elements = await queryOverpass(grid.lat, grid.lng, radiusM);
-    stations = mapElements(elements);
+    stations = await scrapeCarbuStations('belgie', grid.lat, grid.lng, FUEL_MAP);
+
+    // Tag each station with country code and prefixed ID
+    stations = stations.map((s) => ({
+      ...s,
+      country: COUNTRY,
+      id: s.id.startsWith('BE-') ? s.id : `BE-${s.id}`,
+    }));
+
     await putGridCache(cacheKey, stations, env, 600);
   }
 

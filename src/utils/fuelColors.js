@@ -6,7 +6,8 @@ const FUEL_COLORS = {
   regular: '#86efac', ULP: '#86efac', ULP93: '#86efac', ULP95: '#86efac',
   unleaded: '#86efac', RON95: '#86efac', B027: '#86efac', '91': '#86efac',
   nafta_super: '#86efac', gasolina: '#86efac', benzina: '#86efac', E95: '#86efac',
-  unleaded_95: '#86efac',
+  unleaded_95: '#86efac', SUP: '#86efac', eurosuper95: '#86efac', gasolina_95: '#86efac',
+  petrol: '#86efac',
   // Premium gasoline — dark green
   SP98: '#2d6a4f', gasolina98: '#2d6a4f', gasolina97: '#2d6a4f', E98: '#2d6a4f',
   super_unleaded: '#2d6a4f', PULP95: '#2d6a4f', PULP98: '#2d6a4f',
@@ -16,13 +17,14 @@ const FUEL_COLORS = {
   unleaded_100: '#2d6a4f', U91: '#2d6a4f',
   // Diesel — orange
   Gazole: '#f59e0b', diesel: '#f59e0b', Diesel: '#f59e0b', gasoleo: '#f59e0b',
-  gasolio: '#f59e0b', GOE: '#f59e0b', D047: '#f59e0b', DL: '#f59e0b',
+  gasolio: '#f59e0b', GOE: '#f59e0b', DIE: '#f59e0b', D047: '#f59e0b', DL: '#f59e0b',
   diesel_extra: '#f59e0b', diesel_premium: '#f59e0b', diesel_50: '#f59e0b',
-  diesel_500: '#f59e0b',
+  diesel_500: '#f59e0b', eurodizel: '#f59e0b', dizel: '#f59e0b',
+  gasoleo_especial: '#f59e0b', 'dizel-premium': '#f59e0b',
   // LPG / Gas — purple
   GPLc: '#a78bfa', glp: '#a78bfa', gpl: '#a78bfa', GPL: '#a78bfa',
-  LPG: '#a78bfa', GAS: '#a78bfa', gnv: '#a78bfa', gnc: '#a78bfa',
-  metano: '#a78bfa', K015: '#a78bfa',
+  LPG: '#a78bfa', lpg: '#a78bfa', GAS: '#a78bfa', gnv: '#a78bfa', gnc: '#a78bfa',
+  metano: '#a78bfa', K015: '#a78bfa', 'avtoplin-lpg': '#a78bfa', cng: '#a78bfa',
   // E85 — sky blue
   E85: '#38bdf8',
   // Ethanol — cyan

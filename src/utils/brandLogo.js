@@ -60,6 +60,20 @@ const BRAND_DOMAINS = {
   ballenoil: 'ballenoil.es',
   bonarea: 'bonarea.com',
   plenoil: 'plenoil.es',
+  plenergy: 'plenergy.es',
+  moeve: 'moeve.com',
+  petroprix: 'petroprix.com',
+  eroski: 'eroski.es',
+  alcampo: 'alcampo.es',
+  meroil: 'meroil.es',
+  star: 'star.es',
+  'star petroleum': 'star.es',
+  dyneff: 'dyneff.es',
+  disa: 'disa.com',
+  'euskadi low cost': 'euskadilowcost.com',
+  easygas: 'easygas.es',
+  scat: 'scat.es',
+  'gm oil': 'gmoil.com',
 
   // Italy
   eni: 'eni.com',
@@ -121,8 +135,12 @@ const BRAND_DOMAINS = {
   // Argentina
   ypf: 'ypf.com',
   'axion energy': 'axionenergy.com',
+  axion: 'axionenergy.com',
   puma: 'pumaenergy.com',
   gulf: 'gulfoil.com',
+  dapsa: 'dapsa.com.ar',
+  refinor: 'refinor.com.ar',
+  voy: 'voyconenergia.com',
 };
 
 // Direct logo URLs for brands where the domain-based proxy doesn't work well

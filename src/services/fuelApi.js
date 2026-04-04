@@ -41,7 +41,7 @@ async function fetchFromWorker(countryCode, lat, lng, radiusKm, fuelType) {
 const SUPPORTED_COUNTRIES = [
   'FR', 'ES', 'IT', 'UK', 'CH', 'CL', 'MX', 'AR', 'BR',
   'DE', 'HR', 'LU', 'PT', 'SI', 'AT', 'KR', 'AU',
-  'DK', 'NZ', 'NL', 'BE', 'GR', 'MY', 'AE', 'ZA',
+  'DK', 'NZ', 'NL', 'BE', 'GR', 'MY', 'AE', 'ZA', 'IN',
 ];
 
 const fetchers = Object.fromEntries(
@@ -84,19 +84,20 @@ const BRANDS = {
   MY: ['Petronas', 'Shell', 'Petron', 'BHPetrol', 'Caltex'],
   AE: ['ADNOC', 'ENOC', 'EPPCO', 'Emarat', 'Shell'],
   ZA: ['Engen', 'Shell', 'BP', 'Caltex', 'TotalEnergies', 'Sasol'],
+  IN: ['Indian Oil', 'BPCL', 'HPCL', 'Shell', 'Nayara Energy', 'Reliance'],
 };
 
 const FUEL_RANGES = {
   FR: { SP95: [1.65, 1.95], SP98: [1.75, 2.05], E10: [1.60, 1.90], Gazole: [1.55, 1.85], E85: [0.75, 0.95], GPLc: [0.85, 1.05] },
   DE: { e5: [1.65, 1.95], e10: [1.60, 1.90], diesel: [1.55, 1.85] },
-  HR: { e5: [1.40, 1.65], e10: [1.35, 1.60], diesel: [1.35, 1.60] },
-  LU: { e5: [1.45, 1.70], e10: [1.40, 1.65], diesel: [1.40, 1.65] },
-  PT: { e5: [1.60, 1.90], e10: [1.55, 1.85], diesel: [1.50, 1.80] },
-  SI: { e5: [1.45, 1.70], e10: [1.40, 1.65], diesel: [1.40, 1.65] },
+  HR: { eurosuper95: [1.40, 1.65], eurodizel: [1.35, 1.60], lpg: [0.70, 0.95] },
+  LU: { E10: [1.45, 1.70], SP98: [1.55, 1.80], diesel: [1.40, 1.65] },
+  PT: { gasolina_95: [1.60, 1.90], gasoleo: [1.50, 1.80], gasoleo_especial: [1.55, 1.85], gpl: [0.75, 0.95] },
+  SI: { '95': [1.45, 1.70], dizel: [1.40, 1.65], '98': [1.50, 1.75], 'avtoplin-lpg': [0.80, 1.05] },
   UK: { unleaded: [135, 155], diesel: [140, 160], super_unleaded: [150, 170] },
   ES: { gasolina95: [1.45, 1.75], gasolina98: [1.55, 1.85], gasoleo: [1.40, 1.70], glp: [0.75, 0.95] },
   IT: { benzina: [1.70, 2.00], gasolio: [1.60, 1.90], gpl: [0.70, 0.90], metano: [1.30, 1.60] },
-  AT: { SUP: [1.55, 1.85], GOE: [1.50, 1.80], GAS: [1.20, 1.50] },
+  AT: { SUP: [1.55, 1.85], DIE: [1.50, 1.80], GAS: [1.20, 1.50] },
   KR: { B027: [1600, 1900], B034: [1800, 2100], D047: [1500, 1800], K015: [900, 1100] },
   CL: { gasolina93: [1100, 1400], gasolina95: [1200, 1500], gasolina97: [1300, 1600], diesel: [1000, 1300], glp: [600, 800] },
   AU: { E10: [170, 210], U91: [175, 215], P95: [185, 225], P98: [195, 235], DL: [180, 220], LPG: [80, 110] },
@@ -112,6 +113,7 @@ const FUEL_RANGES = {
   MY: { RON95: [2.05, 2.05], RON97: [3.30, 3.60], diesel: [2.15, 2.15] },
   AE: { super98: [2.90, 3.10], special95: [2.80, 3.00], eplus91: [2.70, 2.90], diesel: [2.90, 3.10] },
   ZA: { ULP95: [21.0, 23.0], ULP93: [20.5, 22.5], diesel_50: [18.5, 20.0], diesel_500: [18.0, 19.5] },
+  IN: { petrol: [95, 110], diesel: [85, 95], cng: [75, 85] },
 };
 
 function generateDemoStations(lat, lng, radiusKm, country) {

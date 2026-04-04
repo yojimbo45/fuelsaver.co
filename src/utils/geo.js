@@ -49,6 +49,7 @@ const COUNTRY_BOUNDS = [
   { code: 'KR', latMin: 33.1, latMax: 38.6, lngMin: 124.6, lngMax: 131.9 },
   { code: 'AE', latMin: 22.6, latMax: 26.1, lngMin: 51.5, lngMax: 56.4 },
   { code: 'MY', latMin: 0.8, latMax: 7.4, lngMin: 99.6, lngMax: 119.3 },
+  { code: 'IN', latMin: 6.7, latMax: 35.5, lngMin: 68.1, lngMax: 97.4 },
   { code: 'NZ', latMin: -47.3, latMax: -34.4, lngMin: 166.4, lngMax: 178.6 },
   // Large countries
   { code: 'ZA', latMin: -34.8, latMax: -22.1, lngMin: 16.4, lngMax: 32.9 },

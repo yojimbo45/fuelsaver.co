@@ -1,6 +1,6 @@
 import { formatPrice, formatPriceShort } from '../utils/format';
 
-export default function SavingsBanner({ stations, fuelType, currency }) {
+export default function SavingsBanner({ stations, fuelType, currency, decimals }) {
   if (!stations.length) return null;
 
   const withPrice = stations.filter((s) => s.prices[fuelType] != null);
@@ -20,10 +20,10 @@ export default function SavingsBanner({ stations, fuelType, currency }) {
       <div className="savings-icon">$</div>
       <div className="savings-text">
         <div className="savings-amount">
-          {formatPriceShort(tankSaving, currency)} saved on a full tank
+          {formatPriceShort(tankSaving, currency, decimals)} saved on a full tank
         </div>
         <div className="savings-detail">
-          {formatPrice(cheapest, currency)} → {formatPrice(mostExpensive, currency)}
+          {formatPrice(cheapest, currency, decimals)} → {formatPrice(mostExpensive, currency, decimals)}
           &nbsp;&nbsp;·&nbsp;&nbsp;{withPrice.length} stations compared
         </div>
       </div>

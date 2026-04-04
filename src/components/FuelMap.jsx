@@ -47,6 +47,7 @@ export default function FuelMap({
   stations,
   fuelType,
   currency,
+  decimals,
   countryCode,
   searchCenter,
   highlightedStation,
@@ -295,8 +296,8 @@ export default function FuelMap({
 
     // Build GeoJSON from stations
     const withPrice = stations
-      .filter((s) => s.prices[fuelType] != null && s.lat != null && s.lng != null)
-      .sort((a, b) => a.prices[fuelType] - b.prices[fuelType]);
+      .filter((s) => s.lat != null && s.lng != null)
+      .sort((a, b) => (a.prices[fuelType] ?? Infinity) - (b.prices[fuelType] ?? Infinity));
 
     const minPrice = withPrice.length ? withPrice[0].prices[fuelType] : 0;
     const maxPrice = withPrice.length ? withPrice[withPrice.length - 1].prices[fuelType] : 0;
@@ -310,11 +311,14 @@ export default function FuelMap({
 
     const features = withPrice.map((station, rankIdx) => {
       const price = station.prices[fuelType];
-      let color = '#f97316';
-      if (withPrice.length > 1) {
+      let color = '#9ca3af'; // gray for no price
+      if (price != null && minPrice != null && maxPrice != null && withPrice.length > 1) {
         const ratio = (price - minPrice) / (maxPrice - minPrice || 1);
         if (ratio < 0.25) color = '#22c55e';
         else if (ratio > 0.75) color = '#ef4444';
+        else color = '#f97316';
+      } else if (price != null) {
+        color = '#f97316';
       }
       return {
         type: 'Feature',
@@ -324,9 +328,10 @@ export default function FuelMap({
           rank: String(rankIdx + 1),
           color,
           brand: station.brand,
-          logoUrl: getBrandLogoUrl(station.brand) || '',
+          logoUrl: station.logo || getBrandLogoUrl(station.brand) || '',
           pillId: '',  // set later by pill generator
-          price: formatPrice(price, currency),
+          price: price != null ? formatPrice(price, currency, decimals) : station.brand,
+          name: station.name || '',
           address: station.address + (station.city ? ', ' + station.city : ''),
           allPrices: JSON.stringify(station.prices),
           updatedAt: station.updatedAt || '',
@@ -388,7 +393,7 @@ export default function FuelMap({
         } else {
           priceRows += `<tr class="${isSelected ? 'map-popup-selected' : ''}">
             <td class="map-popup-fuel-label">${indicator}${label}</td>
-            <td class="map-popup-fuel-price">${formatPrice(val, currency)}</td>
+            <td class="map-popup-fuel-price">${formatPrice(val, currency, decimals)}</td>
           </tr>`;
         }
       }
@@ -443,8 +448,13 @@ export default function FuelMap({
         }
       }
 
+      const nameHtml = props.name && props.name !== props.brand
+        ? `<div class="map-popup-name">${props.name}</div>`
+        : '';
+
       return `<div class="map-popup map-popup-detail">
         <div class="map-popup-header">${logoHtml}<div class="map-popup-brand">${props.brand}</div></div>
+        ${nameHtml}
         <div class="map-popup-address">${props.address}</div>
         ${badgeHtml}
         ${priceRows ? `<table class="map-popup-prices">${priceRows}</table>` : ''}
@@ -719,7 +729,7 @@ export default function FuelMap({
       map.on('click', 'stations-circle', handleStationClick);
       map.on('click', 'stations-pill', handleStationClick);
     }
-  }, [stations, fuelType, currency, countryCode]);
+  }, [stations, fuelType, currency, decimals, countryCode]);
 
   useEffect(() => {
     const map = mapRef.current;

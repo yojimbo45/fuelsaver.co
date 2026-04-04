@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import './App.css';
 import { COUNTRIES, DEFAULT_COUNTRY } from './services/countries';
 import { useStations } from './hooks/useStations';
@@ -9,12 +9,32 @@ import SavingsBanner from './components/SavingsBanner';
 import StationList from './components/StationList';
 import FuelMap from './components/FuelMap';
 
+const DEFAULT_TITLE = 'FuelSaver — Compare Fuel Prices in 26 Countries | Find Cheapest Gas Stations';
+const DEFAULT_DESC = 'Compare real-time fuel prices across 26 countries including France, Germany, Spain, UK, Italy, Australia, India, Brazil, and more. Find the cheapest gas stations near you and save money on every fill-up.';
+
 function App() {
   const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [fuelType, setFuelType] = useState(COUNTRIES[DEFAULT_COUNTRY].defaultFuel);
   const [highlightedStation, setHighlightedStation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { stations, loading, error, searchCenter, search } = useStations();
+
+  // Dynamic document.title and meta description for SEO
+  useEffect(() => {
+    const countryName = COUNTRIES[country]?.name || '';
+    const fuelLabel = COUNTRIES[country]?.fuelTypes.find(f => f.id === fuelType)?.label || '';
+
+    if (searchQuery && countryName) {
+      document.title = `Fuel Prices in ${searchQuery} (${countryName}) — ${fuelLabel} | FuelSaver`;
+      document.querySelector('meta[name="description"]')?.setAttribute('content',
+        `Compare ${fuelLabel} prices at gas stations in ${searchQuery}, ${countryName}. Find the cheapest fuel near you with real-time prices on FuelSaver.`
+      );
+    } else {
+      document.title = DEFAULT_TITLE;
+      document.querySelector('meta[name="description"]')?.setAttribute('content', DEFAULT_DESC);
+    }
+  }, [searchQuery, country, fuelType]);
 
   const countryData = COUNTRIES[country];
 
@@ -25,6 +45,7 @@ function App() {
 
   const handleSearch = useCallback(({ query, radiusKm, fuelType: ft, lat, lng, country: detectedCountry }) => {
     setFuelType(ft);
+    setSearchQuery(query || '');
     if (detectedCountry) {
       setCountry(detectedCountry);
     }
@@ -76,11 +97,13 @@ function App() {
             stations={stations}
             fuelType={fuelType}
             currency={countryData.currency}
+            decimals={countryData.decimals}
           />
           <StationList
             stations={stations}
             fuelType={fuelType}
             currency={countryData.currency}
+            decimals={countryData.decimals}
             countryCode={country}
             loading={loading}
             error={error}
@@ -95,6 +118,7 @@ function App() {
           stations={stations}
           fuelType={fuelType}
           currency={countryData.currency}
+          decimals={countryData.decimals}
           countryCode={country}
           searchCenter={searchCenter}
           highlightedStation={highlightedStation}
