@@ -16,6 +16,9 @@ import * as malaysia from './countries/malaysia.js';
 import * as croatia from './countries/croatia.js';
 import * as slovenia from './countries/slovenia.js';
 import * as portugal from './countries/portugal.js';
+import * as thailand from './countries/thailand.js';
+import * as indonesia from './countries/indonesia.js';
+import * as ireland from './countries/ireland.js';
 
 // Tier B — proxy + grid-cache (on-demand)
 import * as tankerkoenig from './countries/tankerkoenig.js';
@@ -30,6 +33,11 @@ import * as uae from './countries/uae.js';
 import * as southAfrica from './countries/south-africa.js';
 import * as luxembourg from './countries/luxembourg.js';
 import * as india from './countries/india.js';
+import * as japan from './countries/japan.js';
+import * as estonia from './countries/estonia.js';
+import * as latvia from './countries/latvia.js';
+import * as lithuania from './countries/lithuania.js';
+import * as poland from './countries/poland.js';
 
 // Tier C — proxy
 import * as brazil from './countries/brazil.js';
@@ -39,6 +47,7 @@ const TIER_A = {
   cl: chile, mx: mexico, ar: argentina,
   dk: denmark, wa: australiaWA, my: malaysia,
   hr: croatia, si: slovenia, pt: portugal,
+  th: thailand, id: indonesia, ie: ireland,
 };
 
 const HANDLERS = {
@@ -56,6 +65,11 @@ const HANDLERS = {
   ae: uae,
   za: southAfrica,
   in: india,
+  jp: japan,
+  ee: estonia,
+  lv: latvia,
+  lt: lithuania,
+  pl: poland,
 };
 
 export default {

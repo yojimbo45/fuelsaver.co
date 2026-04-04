@@ -9,8 +9,8 @@ import SavingsBanner from './components/SavingsBanner';
 import StationList from './components/StationList';
 import FuelMap from './components/FuelMap';
 
-const DEFAULT_TITLE = 'FuelSaver — Compare Fuel Prices in 26 Countries | Find Cheapest Gas Stations';
-const DEFAULT_DESC = 'Compare real-time fuel prices across 26 countries including France, Germany, Spain, UK, Italy, Australia, India, Brazil, and more. Find the cheapest gas stations near you and save money on every fill-up.';
+const DEFAULT_TITLE = 'FuelSaver — Compare Fuel Prices in 34 Countries | Find Cheapest Gas Stations';
+const DEFAULT_DESC = 'Compare real-time fuel prices across 34 countries including France, Germany, Spain, UK, Italy, Australia, India, Brazil, and more. Find the cheapest gas stations near you and save money on every fill-up.';
 
 function App() {
   const [country, setCountry] = useState(DEFAULT_COUNTRY);

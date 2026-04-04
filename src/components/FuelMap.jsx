@@ -80,9 +80,10 @@ export default function FuelMap({
       style: getMapStyle(),
       center: center,
       zoom: initialZoom,
-      attributionControl: true,
+      attributionControl: false,
     });
 
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     // Geolocate button

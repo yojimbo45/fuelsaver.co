@@ -142,6 +142,35 @@ const BRAND_DOMAINS = {
   'octa+': 'octaplus.be',
   gabriels: 'gabriels.be',
 
+  // Ireland
+  'circle k': 'circlek.com',
+  applegreen: 'applegreenstores.com',
+  maxol: 'maxol.ie',
+  emo: 'emo.ie',
+  amber: 'amberstation.ie',
+  certa: 'certa.ie',
+  campus: 'campus.ie',
+  inver: 'inver.ie',
+  'corrib oil': 'corriboil.com',
+  go: 'goireland.ie',
+  top: 'topaz.ie',
+
+  // Baltic States
+  alexela: 'alexela.ee',
+  terminal: 'terminaloil.ee',
+  olerex: 'olerex.ee',
+  krooning: 'krooning.ee',
+  viada: 'viada.lt',
+  virsi: 'virsi.lv',
+  astarte: 'astarte.lv',
+  gotika: 'gotika.lv',
+  emsi: 'emsi.lt',
+
+  // Poland
+  moya: 'moya.pl',
+  lotos: 'lotos.pl',
+  amic: 'amic.pl',
+
   // Croatia
   ina: 'ina.hr',
   tifon: 'tifon.hr',

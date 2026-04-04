@@ -190,6 +190,28 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Thailand -->
+  <url>
+    <loc>https://fuelsaver.one/?country=TH</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Japan -->
+  <url>
+    <loc>https://fuelsaver.one/?country=JP</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Indonesia -->
+  <url>
+    <loc>https://fuelsaver.one/?country=ID</loc>
+    <lastmod>2026-04-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- ===== France — Top 20 Cities ===== -->
   <!-- Paris -->
   <url>
