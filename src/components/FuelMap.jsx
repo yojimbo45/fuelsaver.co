@@ -526,7 +526,7 @@ export default function FuelMap({
 
         let textX = padX;
 
-        // Logo (circular)
+        // Logo (circular, aspect-ratio preserved)
         if (logoImg) {
           const lx = padX;
           const ly = (pillH - logoSize) / 2;
@@ -534,7 +534,18 @@ export default function FuelMap({
           ctx.beginPath();
           ctx.arc(lx + logoSize / 2, ly + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
           ctx.clip();
-          ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
+          // Fill circle with white background first
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+          // Scale image to fit inside the circle, preserving aspect ratio
+          const iw = logoImg.naturalWidth || logoImg.width;
+          const ih = logoImg.naturalHeight || logoImg.height;
+          const scale = Math.min(logoSize / iw, logoSize / ih);
+          const sw = iw * scale;
+          const sh = ih * scale;
+          const sx = lx + (logoSize - sw) / 2;
+          const sy = ly + (logoSize - sh) / 2;
+          ctx.drawImage(logoImg, sx, sy, sw, sh);
           ctx.restore();
           textX = padX + logoSize + gap;
         }

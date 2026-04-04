@@ -71,6 +71,12 @@ export default {
       return handleLogo(url.pathname.slice(6), env);
     }
 
+    // Image proxy — proxies external image URLs with CORS headers + KV cache
+    // Used for logos from APIs that don't send CORS (e.g., Chilean API)
+    if (url.pathname === '/img-proxy') {
+      return handleImageProxy(url.searchParams.get('url'), env);
+    }
+
     // Manual cron trigger endpoint
     if (url.pathname === '/cron') {
       const report = {};
@@ -132,6 +138,24 @@ export default {
     if (url.pathname === '/api/es/build-brands-google') {
       try {
         const result = await spain.buildBrandsGoogle(env);
+        return json({ ok: true, ...result });
+      } catch (e) {
+        return json({ error: e.message }, 500);
+      }
+    }
+
+    // Chile brand enrichment endpoints
+    if (url.pathname === '/api/cl/build-brands-fsq') {
+      try {
+        const result = await chile.buildBrandsFoursquare(env);
+        return json({ ok: true, ...result });
+      } catch (e) {
+        return json({ error: e.message }, 500);
+      }
+    }
+    if (url.pathname === '/api/cl/build-brands-google') {
+      try {
+        const result = await chile.buildBrandsGoogle(env);
         return json({ ok: true, ...result });
       } catch (e) {
         return json({ error: e.message }, 500);
@@ -333,4 +357,35 @@ async function fetchImage(url, minBytes = 500) {
   } catch {
     return null;
   }
+}
+
+// ─── Image proxy (CORS wrapper for external logos) ───────────────────
+async function handleImageProxy(imageUrl, env) {
+  if (!imageUrl) return new Response(null, { status: 400, headers: CORS_HEADERS });
+
+  const cacheKey = `imgproxy:${imageUrl}`;
+  const cached = await env.FUEL_KV.get(cacheKey, { type: 'arrayBuffer' });
+  if (cached) {
+    return new Response(cached, {
+      headers: {
+        'Content-Type': detectImageType(new Uint8Array(cached)),
+        'Cache-Control': 'public, max-age=31536000',
+        ...CORS_HEADERS,
+      },
+    });
+  }
+
+  const imgData = await fetchImage(imageUrl, 100);
+  if (!imgData) return new Response(null, { status: 404, headers: CORS_HEADERS });
+
+  // Cache permanently
+  await env.FUEL_KV.put(cacheKey, imgData);
+
+  return new Response(imgData, {
+    headers: {
+      'Content-Type': detectImageType(new Uint8Array(imgData)),
+      'Cache-Control': 'public, max-age=31536000',
+      ...CORS_HEADERS,
+    },
+  });
 }

@@ -49,6 +49,7 @@ export const COUNTRIES = {
     unit: 'L',
     fuelTypes: [
       { id: 'eurosuper95', label: 'Eurosuper 95' },
+      { id: 'eurosuper100', label: 'Eurosuper 100' },
       { id: 'eurodizel', label: 'Eurodizel' },
       { id: 'lpg', label: 'UNP (LPG)' },
     ],

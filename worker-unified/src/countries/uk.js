@@ -22,6 +22,80 @@ const RETAILER_FEEDS = [
   { name: 'Tesco', url: 'https://www.tesco.com/fuel_prices/fuel_prices_data.json' },
 ];
 
+// Brand → website domain for Brandfetch logo resolution
+const BRAND_DOMAINS = {
+  'BP': 'bp.com',
+  'Shell': 'shell.com',
+  'Esso': 'esso.co.uk',
+  'Tesco': 'tesco.com',
+  "Sainsbury's": 'sainsburys.co.uk',
+  'Asda': 'asda.com',
+  'Morrisons': 'morrisons.com',
+  'Texaco': 'texaco.com',
+  'Murco': 'murco.co.uk',
+  'Jet': 'jet.co.uk',
+  'Gulf': 'gulfoil.com',
+  'Applegreen': 'applegreenstores.com',
+  'SGN': 'sgn.co.uk',
+  'Harvest': 'harvest-energy.com',
+  'Certas': 'certasenergy.co.uk',
+};
+
+// Resolve logo URLs from Brandfetch API, with KV caching (30-day TTL)
+async function resolveLogos(brands, env) {
+  const logoMap = {};
+  const apiKey = env.BRANDFETCH_KEY;
+  if (!apiKey) {
+    console.log('[UK] No BRANDFETCH_KEY in env, skipping logo resolution');
+    return logoMap;
+  }
+
+  for (const brand of brands) {
+    const domain = BRAND_DOMAINS[brand];
+    if (!domain) continue;
+
+    const cacheKey = `uk-logo:${brand}`;
+
+    // Check KV cache first
+    const cached = await env.FUEL_KV.get(cacheKey);
+    if (cached) {
+      logoMap[brand] = cached;
+      continue;
+    }
+
+    try {
+      const res = await fetch(`https://api.brandfetch.io/v2/brands/${domain}`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!res.ok) {
+        console.log(`[UK] Brandfetch ${res.status} for ${domain}`);
+        continue;
+      }
+      const data = await res.json();
+      let bestUrl = null;
+      for (const logo of (data.logos || [])) {
+        const formats = logo.formats || [];
+        const pngOrJpg = formats.find((f) => f.format === 'png' || f.format === 'jpeg');
+        const svg = formats.find((f) => f.format === 'svg');
+        const pick = pngOrJpg || svg;
+        if (pick?.src) {
+          bestUrl = pick.src;
+          if (logo.type === 'icon') break;
+        }
+      }
+      if (bestUrl) {
+        logoMap[brand] = bestUrl;
+        await env.FUEL_KV.put(cacheKey, bestUrl); // permanent — no TTL, no repeat API calls
+        console.log(`[UK] Resolved logo for ${brand}: ${bestUrl}`);
+      }
+    } catch (err) {
+      console.log(`[UK] Brandfetch error for ${brand}: ${err.message}`);
+    }
+  }
+
+  return logoMap;
+}
+
 // CMA standard fuel keys -> normalised keys
 const FUEL_MAP = {
   'e10': 'unleaded',       // E10 (standard unleaded since 2021)
@@ -76,8 +150,20 @@ export async function refresh(env) {
     }
   }
 
+  // Collect unique brands and resolve logos via Brandfetch
+  const uniqueBrands = new Set();
+  for (const s of stations) {
+    if (s.brand) uniqueBrands.add(s.brand);
+  }
+  const logoMap = await resolveLogos([...uniqueBrands], env);
+
+  // Assign logos to stations
+  for (const s of stations) {
+    s.logo = logoMap[s.brand] || null;
+  }
+
   await putStations('UK', stations, env);
-  console.log(`[UK] Refreshed ${stations.length} stations from ${feedsOk} feeds`);
+  console.log(`[UK] Refreshed ${stations.length} stations from ${feedsOk} feeds, resolved ${Object.keys(logoMap).length} brand logos`);
 }
 
 // ─── CMA standard format parser ─────────────────────────────────────

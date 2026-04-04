@@ -74,6 +74,36 @@ const BRAND_DOMAINS = {
   easygas: 'easygas.es',
   scat: 'scat.es',
   'gm oil': 'gmoil.com',
+  campsa: 'campsa.es',
+  'campsa express': 'campsa.es',
+  gasexpress: 'gasexpress.es',
+  costco: 'costco.es',
+  petrocat: 'petrocat.es',
+  'full & go': 'fullgo.es',
+  nafte: 'nafte.es',
+  'confort auto': 'confortauto.com',
+  minioil: 'minioil.es',
+  autonetoil: 'autonetoil.com',
+  hafesa: 'hafesa.es',
+  valcarce: 'valcarce.com',
+  'avanza energy': 'avanzaenergy.es',
+  'avanza low cost': 'avanzaenergy.es',
+  'gv oil': 'gvoil.es',
+  'b-oil': 'b-oil.es',
+  oilprix: 'oilprix.es',
+  'petrol & go': 'petrolandgo.com',
+  fueling: 'fueling.es',
+  'fast fuel': 'fastfuel.es',
+  atlantis: 'atlantisexpress.es',
+  'canary oil': 'canaryoil.es',
+  dinergia: 'dinergia.com',
+  'asc carburantes': 'asccarburantes.es',
+  ecobenz: 'ecobenz.es',
+  alsa: 'alsa.es',
+  texako: 'texaco.com',
+  carrrefour: 'carrefour.fr',
+  'smile oil': 'smileoil.es',
+  gax: 'gax.es',
 
   // Italy
   eni: 'eni.com',
@@ -96,6 +126,36 @@ const BRAND_DOMAINS = {
   miniprix: 'miniprix.ch',
   midland: 'midland.ch',
 
+  // Netherlands
+  tinq: 'tinq.nl',
+  tango: 'tango.nl',
+  argos: 'argos-energies.nl',
+  makro: 'makro.nl',
+  lukoil: 'lukoil.com',
+  ok: 'ok.nl',
+  fieten: 'fietenoliehandel.nl',
+  supertank: 'supertank.nl',
+
+  // Belgium
+  'dats 24': 'dats24.be',
+  dats24: 'dats24.be',
+  'octa+': 'octaplus.be',
+  gabriels: 'gabriels.be',
+
+  // Croatia
+  ina: 'ina.hr',
+  tifon: 'tifon.hr',
+  crodux: 'crodux.hr',
+
+  // Slovenia
+  petrol: 'petrol.si',
+  mol: 'molgroup.info',
+  euroil: 'euroil.si',
+
+  // Portugal
+  prio: 'prio.pt',
+  'oz energia': 'ozenergia.pt',
+
   // Austria
   omv: 'omv.com',
   avanti: 'avanti.at',
@@ -112,6 +172,9 @@ const BRAND_DOMAINS = {
   copec: 'copec.cl',
   terpel: 'terpel.com',
   enex: 'enex.cl',
+  aramco: 'aramco.com',
+  gasco: 'gasco.cl',
+  okey: 'okey.cl',
 
   // Australia
   caltex: 'caltex.com.au',

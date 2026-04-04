@@ -17,14 +17,35 @@ import { getStations, putStations } from '../lib/kv.js';
 const COUNTRY = 'HR';
 const API_URL = 'https://mzoe-gor.hr/data.json';
 
+// Legal entity → consumer brand name (for logo resolution)
+const BRAND_MAP = {
+  'ina – industrija nafte d.d.': 'INA',
+  'petrol d.o.o.': 'Petrol',
+  'tifon d.o.o.': 'Tifon',
+  'lukoil croatia d.o.o.': 'Lukoil',
+  'coral croatia d.o.o.': 'Shell',
+  'adria oil d.o.o.': 'BP',
+  'ktc d.d.': 'KTC',
+  'ags hrvatska d.o.o.': 'AGS',
+  'crodux derivati dva d.o.o.': 'Crodux',
+  'mol hrvatska d.o.o.': 'MOL',
+  'omv hrvatska d.o.o.': 'OMV',
+};
+
+function normalizeBrand(name) {
+  if (!name) return 'Station';
+  return BRAND_MAP[name.toLowerCase().trim()] || name.split(/\s*[–-]\s*/)[0].trim();
+}
+
 // vrsta_goriva_id → normalised fuel type
 const FUEL_TYPE_MAP = {
-  1: 'eurosuper95',   // Eurosuper 95 sa aditivima
-  2: 'eurosuper95',   // Eurosuper 95 bez aditiva
-  // 5, 6: eurosuper100 — skipped (not in frontend)
-  7: 'eurodizel',     // Eurodizel sa aditivima
-  8: 'eurodizel',     // Eurodizel bez aditiva
-  9: 'lpg',           // UNP (autoplin)
+  1: 'eurosuper95',    // Eurosuper 95 sa aditivima
+  2: 'eurosuper95',    // Eurosuper 95 bez aditiva
+  5: 'eurosuper100',   // Eurosuper 100 sa aditivima
+  6: 'eurosuper100',   // Eurosuper 100 bez aditiva
+  7: 'eurodizel',      // Eurodizel sa aditivima
+  8: 'eurodizel',      // Eurodizel bez aditiva
+  9: 'lpg',            // UNP (autoplin)
 };
 
 // ─── Refresh: fetch upstream, normalise, store in KV ───────────────
@@ -59,7 +80,8 @@ export async function refresh(env) {
     // Validate coordinates are within Croatia bounds
     if (isNaN(lat) || isNaN(lng) || lat < 42 || lat > 47 || lng < 13 || lng > 20) continue;
 
-    const brand = obveznikToBrand.get(s.obveznik_id) || 'Station';
+    const rawBrand = obveznikToBrand.get(s.obveznik_id) || '';
+    const brand = normalizeBrand(rawBrand);
 
     // Process prices: gorivo_id → vrsta_goriva_id → fuel type string
     const prices = {};
@@ -71,10 +93,10 @@ export async function refresh(env) {
       if (!fuelType) continue;
 
       const price = c.cijena;
-      if (typeof price !== 'number' || price <= 0) continue;
+      if (typeof price !== 'number' || price <= 0 || price > 5) continue;
 
-      // If multiple prices map to the same fuel type, keep the first non-zero one
-      if (prices[fuelType] == null) {
+      // If multiple products map to the same fuel type, keep the cheapest
+      if (prices[fuelType] == null || price < prices[fuelType]) {
         prices[fuelType] = price;
       }
     }

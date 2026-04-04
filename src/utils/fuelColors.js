@@ -6,14 +6,14 @@ const FUEL_COLORS = {
   regular: '#86efac', ULP: '#86efac', ULP93: '#86efac', ULP95: '#86efac',
   unleaded: '#86efac', RON95: '#86efac', B027: '#86efac', '91': '#86efac',
   nafta_super: '#86efac', gasolina: '#86efac', benzina: '#86efac', E95: '#86efac',
-  unleaded_95: '#86efac', SUP: '#86efac', eurosuper95: '#86efac', gasolina_95: '#86efac',
+  unleaded_95: '#86efac', SUP: '#86efac', eurosuper95: '#86efac', eurosuper100: '#2d6a4f', gasolina_95: '#86efac',
   petrol: '#86efac',
   // Premium gasoline — dark green
   SP98: '#2d6a4f', gasolina98: '#2d6a4f', gasolina97: '#2d6a4f', E98: '#2d6a4f',
   super_unleaded: '#2d6a4f', PULP95: '#2d6a4f', PULP98: '#2d6a4f',
   premium: '#2d6a4f', nafta_premium: '#2d6a4f', gasolina_ad: '#2d6a4f',
   B034: '#2d6a4f', RON97: '#2d6a4f', P95: '#2d6a4f', P98: '#2d6a4f',
-  '95': '#2d6a4f', '98': '#2d6a4f', special95: '#2d6a4f', super98: '#2d6a4f',
+  '95': '#86efac', '98': '#2d6a4f', special95: '#2d6a4f', super98: '#2d6a4f',
   unleaded_100: '#2d6a4f', U91: '#2d6a4f',
   // Diesel — orange
   Gazole: '#f59e0b', diesel: '#f59e0b', Diesel: '#f59e0b', gasoleo: '#f59e0b',
