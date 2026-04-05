@@ -27,6 +27,7 @@ import * as romania from './countries/romania.js';
 import * as hungary from './countries/hungary.js';
 import * as czech from './countries/czech.js';
 import * as turkey from './countries/turkey.js';
+import * as germany from './countries/germany.js';
 
 // Tier B — proxy + grid-cache (on-demand)
 import * as tankerkoenig from './countries/tankerkoenig.js';
@@ -61,11 +62,11 @@ const TIER_A = {
   th: thailand, id: indonesia, ie: ireland,
   ro: romania, hu: hungary, cz: czech,
   gr: greece, tr: turkey,
+  de: germany,
 };
 
 const HANDLERS = {
   ...TIER_A,
-  de: tankerkoenig,
   lu: luxembourg,
   at: austria,
   kr: southKorea,
@@ -88,10 +89,12 @@ const HANDLERS = {
 };
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') {
       return handleOptions();
     }
+
+    try {
 
     const url = new URL(request.url);
 
@@ -106,8 +109,18 @@ export default {
       return handleImageProxy(url.searchParams.get('url'), env);
     }
 
-    // Manual cron trigger endpoint
+    // Manual cron trigger endpoint — /cron?country=de for single country, /cron for all
     if (url.pathname === '/cron') {
+      const single = url.searchParams.get('country')?.toLowerCase();
+      if (single && TIER_A[single]) {
+        try {
+          const start = Date.now();
+          await TIER_A[single].refresh(env);
+          return json({ ok: true, country: single, ms: Date.now() - start });
+        } catch (e) {
+          return json({ ok: false, country: single, error: String(e) }, 500);
+        }
+      }
       const report = {};
       const results = await Promise.allSettled(
         Object.entries(TIER_A).map(async ([code, mod]) => {
@@ -217,6 +230,17 @@ export default {
       });
     }
 
+    // Feedback endpoint (app review prompt)
+    if (url.pathname === '/api/feedback' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        console.log(`[Feedback] platform=${body.platform || 'unknown'} text=${body.text || ''}`);
+        return json({ ok: true });
+      } catch (e) {
+        return json({ error: 'Invalid request' }, 400);
+      }
+    }
+
     // Vehicle search API
     if (url.pathname === '/api/vehicles') {
       return handleVehicles(url);
@@ -247,14 +271,21 @@ export default {
       if (spread && TIER_A[countryCode]) {
         const radiusKm = parseFloat(url.searchParams.get('radius') || '15');
         const stations = await getStations(countryCode.toUpperCase(), env);
-        if (!stations) return json({ error: 'Data not yet cached, try again later' }, 503);
-        const filtered = filterSpread(stations, lat, lng, radiusKm);
-        return json({ stations: filtered, count: filtered.length });
+        if (stations) {
+          const filtered = filterSpread(stations, lat, lng, radiusKm);
+          return json({ stations: filtered, count: filtered.length });
+        }
+        // Hybrid Tier A (prices in KV, stations from Overpass) — fall through to normal handler
       }
 
       return await handler.handleQuery(url, env, countryCode);
     } catch (e) {
       console.error(`[${countryCode.toUpperCase()}] Error:`, e);
+      return json({ error: e.message }, 500);
+    }
+
+    } catch (e) {
+      console.error('[Worker] Unhandled error:', e);
       return json({ error: e.message }, 500);
     }
   },

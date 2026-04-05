@@ -25,3 +25,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Flutter
+flutter/.dart_tool/
+flutter/.idea/
+flutter/build/
+flutter/.flutter-plugins
+flutter/.flutter-plugins-dependencies
+flutter/.packages
+flutter/ios/Pods/
+flutter/ios/.symlinks/
+flutter/ios/Flutter/Flutter.framework
+flutter/ios/Flutter/Flutter.podspec
+flutter/android/.gradle/
+flutter/android/local.properties
+flutter/.env
+flutter/pubspec.lock
