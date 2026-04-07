@@ -86,7 +86,7 @@ function sampleRoutePoints(geometry, intervalKm = 30) {
 function distanceToRoute(lat, lng, geometry) {
   const coords = geometry.coordinates;
   let minDist = Infinity;
-  const step = Math.max(1, Math.floor(coords.length / 300));
+  const step = Math.max(1, Math.floor(coords.length / 2000));
   for (let i = 0; i < coords.length; i += step) {
     const d = haversineDistance(lat, lng, coords[i][1], coords[i][0]);
     if (d < minDist) minDist = d;
@@ -269,7 +269,7 @@ export function useTripRoute() {
         const price = station.prices?.[station._countryFuel];
         if (price == null || price <= 0) continue;
         const routeDist = distanceToRoute(station.lat, station.lng, routeResult.geometry);
-        if (routeDist > 5) continue;
+        if (routeDist > 8) continue;
         candidates.push({ ...station, price, routeDistance: routeDist, countryCode: station._country });
       }
 
