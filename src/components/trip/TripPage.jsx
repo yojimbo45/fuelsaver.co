@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import './trip.css';
 import { useTripRoute } from '../../hooks/useTripRoute';
 import TripSidebar from './TripSidebar';
 import TripMap from './TripMap';

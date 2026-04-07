@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { haversineDistance, detectCountryFromCoords } from '../utils/geo';
 import { formatPrice, formatUpdated } from '../utils/format';
 import { COUNTRIES } from '../services/countries';

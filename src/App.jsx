@@ -8,8 +8,9 @@ import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import SavingsBanner from './components/SavingsBanner';
 import StationList from './components/StationList';
-import FuelMap from './components/FuelMap';
 import LabelStyleToggle from './components/LabelStyleToggle';
+
+const FuelMap = lazy(() => import('./components/FuelMap'));
 
 const TripPage = lazy(() => import('./components/trip/TripPage'));
 
@@ -182,21 +183,23 @@ function App() {
             </aside>
             <div className="map-wrapper">
               <LabelStyleToggle value={labelStyle} onChange={handleLabelStyleChange} />
-              <FuelMap
-                center={countryData.center}
-                zoom={countryData.zoom}
-                stations={stations}
-                fuelType={fuelType}
-                currency={countryData.currency}
-                decimals={countryData.decimals}
-                countryCode={country}
-                searchCenter={searchCenter}
-                highlightedStation={highlightedStation}
-                hoveredStation={hoveredStation}
-                onLocate={handleLocate}
-                onMapMove={handleMapMove}
-                labelStyle={labelStyle}
-              />
+              <Suspense fallback={<div className="map-container" style={{ background: '#e8e0d8' }} />}>
+                <FuelMap
+                  center={countryData.center}
+                  zoom={countryData.zoom}
+                  stations={stations}
+                  fuelType={fuelType}
+                  currency={countryData.currency}
+                  decimals={countryData.decimals}
+                  countryCode={country}
+                  searchCenter={searchCenter}
+                  highlightedStation={highlightedStation}
+                  hoveredStation={hoveredStation}
+                  onLocate={handleLocate}
+                  onMapMove={handleMapMove}
+                  labelStyle={labelStyle}
+                />
+              </Suspense>
             </div>
           </>
         ) : (
