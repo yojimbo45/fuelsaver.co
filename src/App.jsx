@@ -13,12 +13,16 @@ import LabelStyleToggle from './components/LabelStyleToggle';
 const FuelMap = lazy(() => import('./components/FuelMap'));
 
 const TripPage = lazy(() => import('./components/trip/TripPage'));
+const SourcesPage = lazy(() => import('./components/sources/SourcesPage'));
 
 const DEFAULT_TITLE = 'FuelSaver — Compare Fuel Prices in 34 Countries | Find Cheapest Gas Stations';
 const DEFAULT_DESC = 'Compare real-time fuel prices across 34 countries including France, Germany, Spain, UK, Italy, Australia, India, Brazil, and more. Find the cheapest gas stations near you and save money on every fill-up.';
 
 function getInitialPage() {
-  return window.location.hash.startsWith('#/trip') ? 'trip' : 'home';
+  const hash = window.location.hash;
+  if (hash.startsWith('#/trip')) return 'trip';
+  if (hash.startsWith('#/sources')) return 'sources';
+  return 'home';
 }
 
 function App() {
@@ -40,14 +44,15 @@ function App() {
   // Handle browser back/forward
   useEffect(() => {
     const onHashChange = () => {
-      setPage(window.location.hash.startsWith('#/trip') ? 'trip' : 'home');
+      setPage(getInitialPage());
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   const handleNavigate = useCallback((target) => {
-    navigateTo(target === 'trip' ? '#/trip' : '#/');
+    const hashes = { trip: '#/trip', sources: '#/sources' };
+    navigateTo(hashes[target] || '#/');
     setPage(target);
   }, []);
 
@@ -57,6 +62,14 @@ function App() {
       document.title = 'Trip Cost Calculator — FuelSaver';
       document.querySelector('meta[name="description"]')?.setAttribute('content',
         'Calculate the fuel cost of your road trip. Enter origin, destination, and vehicle consumption to estimate your travel expenses.'
+      );
+      return;
+    }
+
+    if (page === 'sources') {
+      document.title = 'Data Sources — FuelSaver';
+      document.querySelector('meta[name="description"]')?.setAttribute('content',
+        'FuelSaver data sources: official government APIs and verified databases used for real-time fuel prices across 43 countries.'
       );
       return;
     }
@@ -202,6 +215,10 @@ function App() {
               </Suspense>
             </div>
           </>
+        ) : page === 'sources' ? (
+          <Suspense fallback={<div className="trip-loading">Loading...</div>}>
+            <SourcesPage />
+          </Suspense>
         ) : (
           <Suspense fallback={<div className="trip-loading">Loading trip planner...</div>}>
             <TripPage

@@ -34,6 +34,13 @@ export default function Header({ page, onNavigate }) {
         >
           Trip Calculator
         </a>
+        <a
+          href="#/sources"
+          className={`header-nav-link${page === 'sources' ? ' active' : ''}`}
+          onClick={(e) => handleClick(e, 'sources')}
+        >
+          Data Sources
+        </a>
       </nav>
     </header>
   );

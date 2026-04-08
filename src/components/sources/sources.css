@@ -1,0 +1,158 @@
+.sources-page {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--gray-50);
+}
+
+.sources-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+}
+
+.sources-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 20px;
+}
+
+.sources-disclaimer {
+  background: var(--orange-50);
+  border: 1px solid var(--orange-200);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gray-700);
+  margin-bottom: 32px;
+}
+
+.sources-disclaimer strong {
+  color: var(--orange-700);
+}
+
+.sources-section {
+  margin-bottom: 32px;
+}
+
+.sources-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 6px;
+}
+
+.sources-section-desc {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 16px;
+}
+
+.sources-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.sources-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.sources-table thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.sources-row {
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.sources-row:last-child {
+  border-bottom: none;
+}
+
+.sources-country {
+  padding: 12px 16px;
+  font-weight: 500;
+  color: var(--gray-800);
+  white-space: nowrap;
+}
+
+.sources-flag {
+  margin-right: 8px;
+}
+
+.sources-name {
+  padding: 12px 16px;
+  color: var(--gray-600);
+}
+
+.sources-link {
+  padding: 12px 16px;
+  word-break: break-all;
+}
+
+.sources-link a {
+  color: var(--orange-600);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.sources-link a:hover {
+  text-decoration: underline;
+}
+
+.sources-na {
+  color: var(--gray-400);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.sources-footer {
+  font-size: 13px;
+  color: var(--gray-400);
+  margin-top: 24px;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .sources-container {
+    padding: 24px 16px 40px;
+  }
+
+  .sources-title {
+    font-size: 22px;
+  }
+
+  .sources-section-title {
+    font-size: 17px;
+  }
+
+  .sources-table {
+    font-size: 13px;
+  }
+
+  .sources-table thead th {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .sources-country,
+  .sources-name,
+  .sources-link {
+    padding: 10px 12px;
+  }
+}
