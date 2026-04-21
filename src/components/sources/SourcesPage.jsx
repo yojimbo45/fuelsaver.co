@@ -130,6 +130,10 @@ export default function SourcesPage() {
           All prices are updated regularly. Each station in the app shows when its price was last verified.
           If you believe a data source is incorrect or missing, please contact us.
         </p>
+
+        <p className="sources-footer">
+          See also: <a href="/privacy">Privacy Policy</a> &middot; <a href="/terms">Terms of Use</a>
+        </p>
       </div>
     </div>
   );

@@ -8,12 +8,15 @@ import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import SavingsBanner from './components/SavingsBanner';
 import StationList from './components/StationList';
-import LabelStyleToggle from './components/LabelStyleToggle';
+import SettingsButton from './components/SettingsButton';
+import SettingsPanel from './components/SettingsPanel';
 
 const FuelMap = lazy(() => import('./components/FuelMap'));
 
 const TripPage = lazy(() => import('./components/trip/TripPage'));
 const SourcesPage = lazy(() => import('./components/sources/SourcesPage'));
+const PrivacyPage = lazy(() => import('./components/legal/PrivacyPage'));
+const TermsPage = lazy(() => import('./components/legal/TermsPage'));
 
 const DEFAULT_TITLE = 'FuelSaver — Compare Fuel Prices in 34 Countries | Find Cheapest Gas Stations';
 const DEFAULT_DESC = 'Compare real-time fuel prices across 34 countries including France, Germany, Spain, UK, Italy, Australia, India, Brazil, and more. Find the cheapest gas stations near you and save money on every fill-up.';
@@ -22,6 +25,8 @@ function getInitialPage() {
   const path = window.location.pathname;
   if (path.startsWith('/trip')) return 'trip';
   if (path.startsWith('/sources')) return 'sources';
+  if (path.startsWith('/privacy')) return 'privacy';
+  if (path.startsWith('/terms')) return 'terms';
   return 'home';
 }
 
@@ -35,6 +40,19 @@ function App() {
   const { stations, loading, error, searchCenter, search } = useStations();
   const [labelStyle, setLabelStyle] = useState(() => localStorage.getItem('labelStyle') || 'classic');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarView, setSidebarView] = useState('stations');
+
+  const toggleSettings = useCallback(() => {
+    setSidebarView((v) => {
+      if (v === 'settings') return 'stations';
+      setSidebarOpen(true);
+      return 'settings';
+    });
+  }, []);
+
+  const closeSettings = useCallback(() => {
+    setSidebarView('stations');
+  }, []);
 
   const handleLabelStyleChange = useCallback((style) => {
     setLabelStyle(style);
@@ -51,9 +69,10 @@ function App() {
   }, []);
 
   const handleNavigate = useCallback((target) => {
-    const paths = { trip: '/trip', sources: '/sources' };
+    const paths = { trip: '/trip', sources: '/sources', privacy: '/privacy', terms: '/terms' };
     navigateTo(paths[target] || '/');
     setPage(target);
+    window.scrollTo(0, 0);
   }, []);
 
   // Dynamic document.title and meta description for SEO
@@ -70,6 +89,22 @@ function App() {
       document.title = 'Data Sources — FuelSaver';
       document.querySelector('meta[name="description"]')?.setAttribute('content',
         'FuelSaver data sources: official government APIs and verified databases used for real-time fuel prices across 43 countries.'
+      );
+      return;
+    }
+
+    if (page === 'privacy') {
+      document.title = 'Privacy Policy — FuelSaver';
+      document.querySelector('meta[name="description"]')?.setAttribute('content',
+        'FuelSaver Privacy Policy: what data we collect, how we use it, and how advertising partners such as Google AdMob and AdSense handle your information.'
+      );
+      return;
+    }
+
+    if (page === 'terms') {
+      document.title = 'Terms of Use — FuelSaver';
+      document.querySelector('meta[name="description"]')?.setAttribute('content',
+        'FuelSaver Terms of Use: the rules that apply when you access fuel prices, the trip calculator, and other features of the Service.'
       );
       return;
     }
@@ -140,16 +175,16 @@ function App() {
     search({ query: '', country, radiusKm: 30, fuelType, lat, lng });
   }, [country, fuelType, search]);
 
-  const handleMapMove = useCallback(({ lat, lng, radiusKm }) => {
+  const handleMapMove = useCallback(({ lat, lng, bbox }) => {
     const detected = detectCountryFromCoords(lat, lng);
     const targetCountry = detected && COUNTRIES[detected] ? detected : country;
 
     if (targetCountry !== country) {
       setCountry(targetCountry);
       setFuelType(COUNTRIES[targetCountry].defaultFuel);
-      search({ query: '', country: targetCountry, radiusKm, fuelType: COUNTRIES[targetCountry].defaultFuel, lat, lng, skipFly: true });
+      search({ query: '', country: targetCountry, bbox, fuelType: COUNTRIES[targetCountry].defaultFuel, lat, lng, skipFly: true });
     } else {
-      search({ query: '', country: targetCountry, radiusKm, fuelType, lat, lng, skipFly: true });
+      search({ query: '', country: targetCountry, bbox, fuelType, lat, lng, skipFly: true });
     }
   }, [country, fuelType, search]);
 
@@ -170,32 +205,45 @@ function App() {
               <button className="sidebar-handle" onClick={() => setSidebarOpen(o => !o)}>
                 <span className="sidebar-handle-bar" />
                 <span className="sidebar-handle-label">
-                  {stations.length > 0 ? `${stations.length} stations` : 'Stations'}
+                  {sidebarView === 'settings'
+                    ? 'Settings'
+                    : stations.length > 0 ? `${stations.length} stations` : 'Stations'}
                 </span>
                 <svg className={`sidebar-handle-chevron${sidebarOpen ? '' : ' flipped'}`} viewBox="0 0 12 8" width="12" height="8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 1l5 5 5-5"/></svg>
               </button>
-              <SearchBar onSearch={handleSearch} onCountryDetected={handleCountryDetected} activeFuelType={fuelType} />
-              <SavingsBanner
-                stations={stations}
-                fuelType={fuelType}
-                currency={countryData.currency}
-                decimals={countryData.decimals}
-              />
-              <StationList
-                stations={stations}
-                fuelType={fuelType}
-                currency={countryData.currency}
-                decimals={countryData.decimals}
-                countryCode={country}
-                loading={loading}
-                error={error}
-                onStationClick={handleStationClick}
-                onStationHover={handleStationHover}
-                onFuelChange={handleFuelChange}
-              />
+              {sidebarView === 'settings' ? (
+                <SettingsPanel
+                  labelStyle={labelStyle}
+                  onLabelStyleChange={handleLabelStyleChange}
+                  onClose={closeSettings}
+                  onNavigate={handleNavigate}
+                />
+              ) : (
+                <>
+                  <SearchBar onSearch={handleSearch} onCountryDetected={handleCountryDetected} activeFuelType={fuelType} />
+                  <SavingsBanner
+                    stations={stations}
+                    fuelType={fuelType}
+                    currency={countryData.currency}
+                    decimals={countryData.decimals}
+                  />
+                  <StationList
+                    stations={stations}
+                    fuelType={fuelType}
+                    currency={countryData.currency}
+                    decimals={countryData.decimals}
+                    countryCode={country}
+                    loading={loading}
+                    error={error}
+                    onStationClick={handleStationClick}
+                    onStationHover={handleStationHover}
+                    onFuelChange={handleFuelChange}
+                  />
+                </>
+              )}
             </aside>
             <div className="map-wrapper">
-              <LabelStyleToggle value={labelStyle} onChange={handleLabelStyleChange} />
+              <SettingsButton active={sidebarView === 'settings'} onClick={toggleSettings} />
               <Suspense fallback={<div className="map-container" style={{ background: '#e8e0d8' }} />}>
                 <FuelMap
                   center={countryData.center}
@@ -218,6 +266,14 @@ function App() {
         ) : page === 'sources' ? (
           <Suspense fallback={<div className="trip-loading">Loading...</div>}>
             <SourcesPage />
+          </Suspense>
+        ) : page === 'privacy' ? (
+          <Suspense fallback={<div className="trip-loading">Loading...</div>}>
+            <PrivacyPage />
+          </Suspense>
+        ) : page === 'terms' ? (
+          <Suspense fallback={<div className="trip-loading">Loading...</div>}>
+            <TermsPage />
           </Suspense>
         ) : (
           <Suspense fallback={<div className="trip-loading">Loading trip planner...</div>}>

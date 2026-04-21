@@ -946,79 +946,7 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* ── Label Style Toggle ─────────────────── */
-.label-toggle {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 5;
-}
-
-.label-toggle-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius);
-  border: none;
-  background: #fff;
-  color: var(--gray-600);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-}
-
-.label-toggle-btn:hover {
-  background: var(--gray-50);
-  color: var(--gray-800);
-}
-
-.label-toggle-menu {
-  position: absolute;
-  top: 38px;
-  left: 0;
-  background: #fff;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
-  padding: 8px;
-  min-width: 150px;
-}
-
-.label-toggle-title {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--gray-400);
-  padding: 4px 8px;
-}
-
-.label-toggle-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px;
-  border: none;
-  background: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--gray-700);
-}
-
-.label-toggle-option:hover {
-  background: var(--gray-100);
-}
-
-.label-toggle-option.active {
-  background: var(--orange-50);
-  color: var(--orange-600);
-  font-weight: 600;
-}
-
-/* Mini previews in toggle */
+/* ── Label Style Previews (used in SettingsPanel) ── */
 .label-toggle-preview {
   display: flex;
   flex-direction: column;
@@ -1085,4 +1013,194 @@
     padding: 8px 12px;
     min-height: 44px;
   }
+}
+
+/* ── Map Settings Button ────────────────── */
+.map-settings-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  border: none;
+  background: #fff;
+  color: var(--gray-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: color 0.15s, background 0.15s;
+}
+
+.map-settings-btn:hover {
+  background: var(--gray-50);
+  color: var(--gray-800);
+}
+
+.map-settings-btn.active {
+  background: var(--orange-600);
+  color: #fff;
+}
+
+/* ── Settings Panel (sidebar) ───────────── */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 20px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.settings-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.settings-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.settings-close:hover {
+  background: var(--gray-200);
+  color: var(--gray-800);
+}
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--gray-400);
+  margin-bottom: 10px;
+}
+
+.settings-pin-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.settings-pin-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px;
+  border: 1.5px solid var(--gray-200);
+  background: #fff;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.settings-pin-option:hover {
+  border-color: var(--gray-300);
+  background: var(--gray-50);
+}
+
+.settings-pin-option.active {
+  border-color: var(--orange-500);
+  background: var(--orange-50);
+  color: var(--orange-700);
+  font-weight: 600;
+}
+
+.settings-pin-label {
+  font-size: 13px;
+}
+
+.settings-link-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.settings-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: none;
+  background: none;
+  border-bottom: 1px solid var(--gray-100);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-800);
+  text-align: left;
+}
+
+.settings-link-row:last-child {
+  border-bottom: none;
+}
+
+.settings-link-row:hover {
+  background: var(--gray-50);
+}
+
+.settings-link-row svg {
+  color: var(--gray-400);
+}
+
+.settings-footer {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.settings-stores {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-store-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 0;
+}
+
+.settings-store-badge img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.settings-store-badge-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
