@@ -1,7 +1,7 @@
 import { navigateTo } from '../utils/url';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.fuelsaver.gasprices.stationfinder';
-const APP_STORE_URL = null;
+const APP_STORE_URL = 'https://apps.apple.com/fr/app/fuelsaver-cheap-gas-sation/id6761938959';
 const PLAY_BADGE = 'https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg';
 const APP_STORE_BADGE = 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg';
 
@@ -85,20 +85,14 @@ export default function SettingsPanel({ labelStyle, onLabelStyleChange, onClose,
           >
             <img src={PLAY_BADGE} alt="Get it on Google Play" />
           </a>
-          {APP_STORE_URL ? (
-            <a
-              href={APP_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="settings-store-badge"
-            >
-              <img src={APP_STORE_BADGE} alt="Download on the App Store" />
-            </a>
-          ) : (
-            <span className="settings-store-badge settings-store-badge-disabled">
-              <img src={APP_STORE_BADGE} alt="Download on the App Store" />
-            </span>
-          )}
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="settings-store-badge"
+          >
+            <img src={APP_STORE_BADGE} alt="Download on the App Store" />
+          </a>
         </div>
       </div>
     </div>
